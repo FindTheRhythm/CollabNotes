@@ -5,7 +5,11 @@ import { asyncHandler } from "../middlewares/async.middleware.js";
 
 export class CommentController {
   getNoteComments = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const comments = await commentService.getNoteComments(req.params.noteId);
+    const comments = await commentService.getNoteComments(
+      req.params.noteId,
+      req.user!.userId,
+      req.user!.role
+    );
 
     res.status(200).json(
       createSuccessResponse(comments, "Comments retrieved successfully", 200)
@@ -14,7 +18,12 @@ export class CommentController {
 
   create = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { noteId, content } = req.body;
-    const comment = await commentService.createComment(noteId, req.user!.userId, content);
+    const comment = await commentService.createComment(
+      noteId,
+      req.user!.userId,
+      req.user!.role,
+      content
+    );
 
     res.status(201).json(
       createSuccessResponse(comment, "Comment created successfully", 201)
@@ -23,7 +32,12 @@ export class CommentController {
 
   update = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { content } = req.body;
-    const comment = await commentService.updateComment(req.params.id, content, req.user!.userId);
+    const comment = await commentService.updateComment(
+      req.params.id,
+      content,
+      req.user!.userId,
+      req.user!.role
+    );
 
     res.status(200).json(
       createSuccessResponse(comment, "Comment updated successfully", 200)
@@ -31,7 +45,7 @@ export class CommentController {
   });
 
   delete = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    await commentService.deleteComment(req.params.id, req.user!.userId);
+    await commentService.deleteComment(req.params.id, req.user!.userId, req.user!.role);
 
     res.status(200).json(
       createSuccessResponse(null, "Comment deleted successfully", 200)

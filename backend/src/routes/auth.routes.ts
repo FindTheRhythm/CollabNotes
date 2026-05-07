@@ -2,8 +2,7 @@ import { Router } from "express";
 import { authController } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validationMiddleware } from "../middlewares/validation.middleware.js";
-import { registerValidation, loginValidation } from "../validators/auth.validator.js";
-import { asyncHandler } from "../middlewares/async.middleware.js";
+import { registerValidation, loginValidation, refreshTokenValidation } from "../validators/auth.validator.js";
 
 const router = Router();
 
@@ -23,18 +22,22 @@ router.post(
 
 router.post(
   "/logout",
-  asyncHandler(authMiddleware),
+  authMiddleware,
+  refreshTokenValidation(),
+  validationMiddleware,
   authController.logout
 );
 
 router.post(
   "/refresh",
+  refreshTokenValidation(),
+  validationMiddleware,
   authController.refresh
 );
 
 router.get(
   "/me",
-  asyncHandler(authMiddleware),
+  authMiddleware,
   authController.getCurrentUser
 );
 

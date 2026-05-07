@@ -3,12 +3,12 @@ import { noteController } from "../controllers/note.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validationMiddleware } from "../middlewares/validation.middleware.js";
 import { createNoteValidation, updateNoteValidation, noteIdValidation, paginationValidation } from "../validators/note.validator.js";
-import { asyncHandler } from "../middlewares/async.middleware.js";
 
 const router = Router();
 
 router.get(
   "/",
+  authMiddleware,
   paginationValidation(),
   validationMiddleware,
   noteController.getAll
@@ -16,6 +16,7 @@ router.get(
 
 router.get(
   "/search",
+  authMiddleware,
   paginationValidation(),
   validationMiddleware,
   noteController.search
@@ -23,7 +24,7 @@ router.get(
 
 router.post(
   "/",
-  asyncHandler(authMiddleware),
+  authMiddleware,
   createNoteValidation(),
   validationMiddleware,
   noteController.create
@@ -31,7 +32,7 @@ router.post(
 
 router.get(
   "/my",
-  asyncHandler(authMiddleware),
+  authMiddleware,
   paginationValidation(),
   validationMiddleware,
   noteController.getUserNotes
@@ -39,6 +40,7 @@ router.get(
 
 router.get(
   "/:id",
+  authMiddleware,
   noteIdValidation(),
   validationMiddleware,
   noteController.getById
@@ -46,7 +48,7 @@ router.get(
 
 router.put(
   "/:id",
-  asyncHandler(authMiddleware),
+  authMiddleware,
   noteIdValidation(),
   updateNoteValidation(),
   validationMiddleware,
@@ -55,7 +57,7 @@ router.put(
 
 router.delete(
   "/:id",
-  asyncHandler(authMiddleware),
+  authMiddleware,
   noteIdValidation(),
   validationMiddleware,
   noteController.delete

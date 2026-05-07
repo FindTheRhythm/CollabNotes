@@ -3,6 +3,8 @@ import { userService } from "../services/user.service.js";
 import { createSuccessResponse } from "../utils/errors.js";
 import { asyncHandler } from "../middlewares/async.middleware.js";
 import { getPaginationParams } from "../utils/helpers.js";
+import { UserRole } from "../types/index.js";
+import { ForbiddenError } from "../utils/errors.js";
 
 export class UserController {
   getAll = asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -15,6 +17,10 @@ export class UserController {
   });
 
   getById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    if (req.user!.role !== UserRole.ADMIN && req.user!.userId !== req.params.id) {
+      throw new ForbiddenError("You don't have permission to view this user");
+    }
+
     const user = await userService.getUserById(req.params.id);
 
     res.status(200).json(
@@ -23,6 +29,14 @@ export class UserController {
   });
 
   update = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    if (req.user!.role !== UserRole.ADMIN && req.user!.userId !== req.params.id) {
+      throw new ForbiddenError("You don't have permission to update this user");
+    }
+
+    if (req.body.role && req.user!.role !== UserRole.ADMIN) {
+      throw new ForbiddenError("Only administrators can update user roles");
+    }
+
     const user = await userService.updateUser(req.params.id, req.body);
 
     res.status(200).json(

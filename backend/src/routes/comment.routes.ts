@@ -3,13 +3,12 @@ import { commentController } from "../controllers/comment.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validationMiddleware } from "../middlewares/validation.middleware.js";
 import { createCommentValidation, updateCommentValidation, commentIdValidation, noteIdCommentValidation } from "../validators/comment.validator.js";
-import { asyncHandler } from "../middlewares/async.middleware.js";
 
 const router = Router();
 
 router.post(
   "/",
-  asyncHandler(authMiddleware),
+  authMiddleware,
   createCommentValidation(),
   validationMiddleware,
   commentController.create
@@ -17,6 +16,7 @@ router.post(
 
 router.get(
   "/:noteId",
+  authMiddleware,
   noteIdCommentValidation(),
   validationMiddleware,
   commentController.getNoteComments
@@ -24,7 +24,7 @@ router.get(
 
 router.put(
   "/:id",
-  asyncHandler(authMiddleware),
+  authMiddleware,
   commentIdValidation(),
   updateCommentValidation(),
   validationMiddleware,
@@ -33,7 +33,7 @@ router.put(
 
 router.delete(
   "/:id",
-  asyncHandler(authMiddleware),
+  authMiddleware,
   commentIdValidation(),
   validationMiddleware,
   commentController.delete

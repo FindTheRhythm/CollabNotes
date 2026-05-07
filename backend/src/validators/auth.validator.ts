@@ -23,6 +23,10 @@ export const loginValidation = (): ValidationChain[] => [
   body("password").notEmpty().withMessage("Password is required")
 ];
 
+export const refreshTokenValidation = (): ValidationChain[] => [
+  body("refreshToken").notEmpty().withMessage("Refresh token is required")
+];
+
 export const updateUserValidation = (): ValidationChain[] => [
   body("username")
     .optional()

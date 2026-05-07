@@ -38,6 +38,57 @@ export class NoteRepository {
     };
   }
 
+  async findAccessibleByUserId(userId: string, offset: number, limit: number): Promise<{ notes: (INote & { permission?: string })[]; total: number }> {
+    const [notesResult, countResult] = await Promise.all([
+      query(
+        `SELECT DISTINCT n.*, sa.permission AS permission FROM notes n
+         LEFT JOIN shared_access sa ON sa.note_id = n.id
+         WHERE n.owner_id = $1 OR sa.user_id = $1
+         ORDER BY n.created_at DESC
+         OFFSET $2 LIMIT $3`,
+        [userId, offset, limit]
+      ),
+      query(
+        `SELECT COUNT(DISTINCT n.id) FROM notes n
+         LEFT JOIN shared_access sa ON sa.note_id = n.id
+         WHERE n.owner_id = $1 OR sa.user_id = $1`,
+        [userId]
+      )
+    ]);
+
+    return {
+      notes: notesResult.rows,
+      total: parseInt(countResult.rows[0].count, 10)
+    };
+  }
+
+  async searchAccessibleByUserId(queryText: string, userId: string, offset: number, limit: number): Promise<{ notes: (INote & { permission?: string })[]; total: number }> {
+    const searchQuery = `%${queryText}%`;
+    const [notesResult, countResult] = await Promise.all([
+      query(
+        `SELECT DISTINCT n.*, sa.permission AS permission FROM notes n
+         LEFT JOIN shared_access sa ON sa.note_id = n.id
+         WHERE (n.owner_id = $1 OR sa.user_id = $1)
+           AND (n.title ILIKE $2 OR n.content ILIKE $2)
+         ORDER BY n.created_at DESC
+         OFFSET $3 LIMIT $4`,
+        [userId, searchQuery, offset, limit]
+      ),
+      query(
+        `SELECT COUNT(DISTINCT n.id) FROM notes n
+         LEFT JOIN shared_access sa ON sa.note_id = n.id
+         WHERE (n.owner_id = $1 OR sa.user_id = $1)
+           AND (n.title ILIKE $2 OR n.content ILIKE $2)`,
+        [userId, searchQuery]
+      )
+    ]);
+
+    return {
+      notes: notesResult.rows,
+      total: parseInt(countResult.rows[0].count, 10)
+    };
+  }
+
   async create(title: string, content: string, ownerId: string): Promise<INote> {
     const id = generateId();
     const result = await query(

@@ -7,7 +7,7 @@ import { getPaginationParams } from "../utils/helpers.js";
 export class NoteController {
   getAll = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { page, limit } = getPaginationParams(req.query.page, req.query.limit);
-    const result = await noteService.getAllNotes(page, limit);
+    const result = await noteService.getAllNotes(req.user!.userId, req.user!.role, page, limit);
 
     res.status(200).json(
       createSuccessResponse(result, "Notes retrieved successfully", 200)
@@ -15,7 +15,7 @@ export class NoteController {
   });
 
   getById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const note = await noteService.getNoteById(req.params.id, req.user?.userId);
+    const note = await noteService.getNoteById(req.params.id, req.user!.userId, req.user!.role);
 
     res.status(200).json(
       createSuccessResponse(note, "Note retrieved successfully", 200)
@@ -42,7 +42,13 @@ export class NoteController {
 
   update = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { title, content } = req.body;
-    const note = await noteService.updateNote(req.params.id, title, content, req.user!.userId);
+    const note = await noteService.updateNote(
+      req.params.id,
+      title,
+      content,
+      req.user!.userId,
+      req.user!.role
+    );
 
     res.status(200).json(
       createSuccessResponse(note, "Note updated successfully", 200)
@@ -50,7 +56,7 @@ export class NoteController {
   });
 
   delete = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    await noteService.deleteNote(req.params.id, req.user!.userId);
+    await noteService.deleteNote(req.params.id, req.user!.userId, req.user!.role);
 
     res.status(200).json(
       createSuccessResponse(null, "Note deleted successfully", 200)
@@ -68,7 +74,13 @@ export class NoteController {
       return;
     }
 
-    const result = await noteService.searchNotes(q, page, limit);
+    const result = await noteService.searchNotes(
+      q,
+      req.user!.userId,
+      req.user!.role,
+      page,
+      limit
+    );
 
     res.status(200).json(
       createSuccessResponse(result, "Search results retrieved successfully", 200)
