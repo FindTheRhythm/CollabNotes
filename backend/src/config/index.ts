@@ -1,14 +1,15 @@
 import "dotenv/config";
 
 const requiredEnvVars = [
-  "DB_HOST",
-  "DB_PORT",
-  "DB_NAME",
-  "DB_USER",
-  "DB_PASSWORD",
   "JWT_ACCESS_SECRET",
   "JWT_REFRESH_SECRET"
 ];
+
+// In development, DB and Redis are optional
+const isDev = process.env.NODE_ENV === "development";
+if (!isDev) {
+  requiredEnvVars.push("DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_PASSWORD");
+}
 
 requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
@@ -20,14 +21,14 @@ export const config = {
   node: {
     env: process.env.NODE_ENV || "development",
     port: parseInt(process.env.PORT || "3000", 10),
-    isDev: process.env.NODE_ENV === "development"
+    isDev: isDev
   },
   database: {
-    host: process.env.DB_HOST!,
+    host: process.env.DB_HOST || "localhost",
     port: parseInt(process.env.DB_PORT || "5432", 10),
-    database: process.env.DB_NAME!,
-    user: process.env.DB_USER!,
-    password: process.env.DB_PASSWORD!,
+    database: process.env.DB_NAME || "collabnotes_dev",
+    user: process.env.DB_USER || "postgres",
+    password: process.env.DB_PASSWORD || "postgres_password",
     ssl: process.env.DB_SSL === "true"
   },
   jwt: {

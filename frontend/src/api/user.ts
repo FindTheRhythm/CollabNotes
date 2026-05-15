@@ -1,5 +1,5 @@
-import api from "@/api/client.ts";
-import { IUser, IPaginatedResponse } from "@/types/index.ts";
+import api from "@/api/client";
+import { IUser, IPaginatedResponse } from "@/types/index";
 
 export const userAPI = {
   getAll: async (page: number = 1, limit: number = 20): Promise<IPaginatedResponse<IUser>> => {

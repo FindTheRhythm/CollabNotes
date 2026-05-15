@@ -1,6 +1,6 @@
 import React from "react";
-import { MainLayout } from "@/layouts/MainLayout.tsx";
-import { useAuth } from "@/hooks/useAuth.ts";
+import { MainLayout } from "@/layouts/MainLayout";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function DashboardPage(): React.ReactElement {
   const { user, isLoading } = useAuth();

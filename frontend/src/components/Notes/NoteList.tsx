@@ -1,6 +1,6 @@
 import React from "react";
-import { INoteWithAccess } from "@/types/index.ts";
-import { NoteCard } from "@/components/Notes/NoteCard.tsx";
+import { INoteWithAccess } from "@/types/index";
+import { NoteCard } from "@/components/Notes/NoteCard";
 
 interface NoteListProps {
   notes: INoteWithAccess[];

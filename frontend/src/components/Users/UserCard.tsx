@@ -1,5 +1,5 @@
 import React from "react";
-import { IUser } from "@/types/index.ts";
+import { IUser } from "@/types";
 
 interface UserCardProps {
   user: IUser;

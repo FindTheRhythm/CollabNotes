@@ -7,13 +7,29 @@ const PORT = config.node.port;
 
 async function startServer(): Promise<void> {
   try {
-    // Test database connection
-    await pool.query("SELECT NOW()");
-    console.log("✓ Database connected");
+    // Test database connection (optional in dev)
+    try {
+      await pool.query("SELECT NOW()");
+      console.log("✓ Database connected");
+    } catch (dbError) {
+      if (config.node.isDev) {
+        console.log("⚠ Database not available (dev mode)");
+      } else {
+        throw dbError;
+      }
+    }
 
-    // Test Redis connection
-    await redis.ping();
-    console.log("✓ Redis connected");
+    // Test Redis connection (optional in dev)
+    try {
+      await redis.ping();
+      console.log("✓ Redis connected");
+    } catch (redisError) {
+      if (config.node.isDev) {
+        console.log("⚠ Redis not available (dev mode)");
+      } else {
+        throw redisError;
+      }
+    }
 
     // Start server
     app.listen(PORT, () => {

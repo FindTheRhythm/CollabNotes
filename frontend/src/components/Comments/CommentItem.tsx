@@ -1,5 +1,5 @@
 import React from "react";
-import { IComment } from "@/types/index.ts";
+import { IComment } from "@/types/index";
 
 interface CommentItemProps {
   comment: IComment;

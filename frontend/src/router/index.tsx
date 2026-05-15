@@ -1,16 +1,16 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { ProtectedRoute } from "@/router/ProtectedRoute.tsx";
+import { ProtectedRoute } from "@/router/ProtectedRoute";
 
 // Pages
-import LoginPage from "@/pages/LoginPage.tsx";
-import RegisterPage from "@/pages/RegisterPage.tsx";
-import DashboardPage from "@/pages/DashboardPage.tsx";
-import NotesPage from "@/pages/NotesPage.tsx";
-import NoteDetailsPage from "@/pages/NoteDetailsPage.tsx";
-import ProfilePage from "@/pages/ProfilePage.tsx";
-import AdminPage from "@/pages/AdminPage.tsx";
-import NotFoundPage from "@/pages/NotFoundPage.tsx";
+import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
+import DashboardPage from "@/pages/DashboardPage";
+import NotesPage from "@/pages/NotesPage";
+import NoteDetailsPage from "@/pages/NoteDetailsPage";
+import ProfilePage from "@/pages/ProfilePage";
+import AdminPage from "@/pages/AdminPage";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 export function AppRouter(): React.ReactElement {
   return (

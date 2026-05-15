@@ -1,14 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { MainLayout } from "@/layouts/MainLayout.tsx";
-import { useNotes } from "@/hooks/useNotes.ts";
-import { NoteList } from "@/components/Notes/NoteList.tsx";
-import { NoteToolbar } from "@/components/Notes/NoteToolbar.tsx";
-import { NoteEditor } from "@/components/Notes/NoteEditor.tsx";
+import { MainLayout } from "@/layouts/MainLayout";
+import { useNotes } from "@/hooks/useNotes";
+import { useToast } from "@/hooks/useToast";
+import { NoteList } from "@/components/Notes/NoteList";
+import { NoteToolbar } from "@/components/Notes/NoteToolbar";
+import { NoteEditor } from "@/components/Notes/NoteEditor";
 
 export default function NotesPage(): React.ReactElement {
   const { notes, isLoading, error, fetchUserNotes, createNote, removeNote } = useNotes();
+  const { showError, showSuccess } = useToast();
   const [showEditor, setShowEditor] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Show error notification when error state changes
+  useEffect(() => {
+    if (error) {
+      showError(new Error(error), "Notes Operation Failed");
+    }
+  }, [error, showError]);
 
   useEffect(() => {
     fetchUserNotes(currentPage);
@@ -19,21 +28,29 @@ export default function NotesPage(): React.ReactElement {
   };
 
   const handleSaveNote = async (title: string, content: string): Promise<void> => {
-    await createNote(title, content);
-    setShowEditor(false);
-    fetchUserNotes(1);
+    try {
+      await createNote(title, content);
+      setShowEditor(false);
+      showSuccess("Note created successfully!");
+      fetchUserNotes(1);
+    } catch (error) {
+      showError(error, "Failed to Create Note");
+    }
   };
 
   const handleDeleteNote = async (noteId: string): Promise<void> => {
-    await removeNote(noteId);
+    try {
+      await removeNote(noteId);
+      showSuccess("Note deleted successfully!");
+    } catch (error) {
+      showError(error, "Failed to Delete Note");
+    }
   };
 
   return (
     <MainLayout>
       <div className="notes-page">
         <h1>My Notes</h1>
-
-        {error && <div className="error-message">{error}</div>}
 
         <NoteToolbar
           onSearch={() => {}}

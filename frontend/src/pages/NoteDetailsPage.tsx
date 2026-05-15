@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { MainLayout } from "@/layouts/MainLayout.tsx";
-import { useNotes } from "@/hooks/useNotes.ts";
-import { useAuth } from "@/hooks/useAuth.ts";
-import { NoteEditor } from "@/components/Notes/NoteEditor.tsx";
-import { CommentList } from "@/components/Comments/CommentList.tsx";
-import { commentAPI } from "@/api/comment.ts";
-import { IComment } from "@/types/index.ts";
+import { MainLayout } from "@/layouts/MainLayout";
+import { useNotes } from "@/hooks/useNotes";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
+import { NoteEditor } from "@/components/Notes/NoteEditor";
+import { CommentList } from "@/components/Comments/CommentList";
+import { commentAPI } from "@/api/comment";
+import { IComment } from "@/types";
 
 export default function NoteDetailsPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
   const { currentNote, isLoading, fetchNoteById, updateNoteContent } = useNotes();
   const { user } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [comments, setComments] = useState<IComment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -30,15 +32,20 @@ export default function NoteDetailsPage(): React.ReactElement {
       const data = await commentAPI.getNoteComments(id);
       setComments(data);
     } catch (error) {
-      console.error("Failed to load comments:", error);
+      showError(error, "Failed to Load Comments");
     } finally {
       setCommentsLoading(false);
     }
   };
 
   const handleSaveNote = async (title: string, content: string): Promise<void> => {
-    if (id) {
-      await updateNoteContent(id, title, content);
+    try {
+      if (id) {
+        await updateNoteContent(id, title, content);
+        showSuccess("Note updated successfully!");
+      }
+    } catch (error) {
+      showError(error, "Failed to Update Note");
     }
   };
 
@@ -49,18 +56,20 @@ export default function NoteDetailsPage(): React.ReactElement {
     try {
       await commentAPI.create(id, newComment);
       setNewComment("");
+      showSuccess("Comment added successfully!");
       await loadComments();
     } catch (error) {
-      console.error("Failed to add comment:", error);
+      showError(error, "Failed to Add Comment");
     }
   };
 
   const handleDeleteComment = async (commentId: string): Promise<void> => {
     try {
       await commentAPI.delete(commentId);
+      showSuccess("Comment deleted successfully!");
       await loadComments();
     } catch (error) {
-      console.error("Failed to delete comment:", error);
+      showError(error, "Failed to Delete Comment");
     }
   };
 

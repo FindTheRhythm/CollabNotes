@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "@/store/index.ts";
-import { setLoading, setError, setNotes, setCurrentNote, addNote, updateNote, deleteNote } from "@/store/noteSlice.ts";
-import { noteAPI } from "@/api/note.ts";
+import { RootState, AppDispatch } from "@/store/index";
+import { setLoading, setError, setNotes, setCurrentNote, addNote, updateNote, deleteNote } from "@/store/noteSlice";
+import { noteAPI } from "@/api/note";
 
 export function useNotes() {
   const dispatch = useDispatch<AppDispatch>();

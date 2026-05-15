@@ -1,11 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth.ts";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 
 export function LoginForm(): React.ReactElement {
   const navigate = useNavigate();
   const { login, isLoading, error } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [formData, setFormData] = useState({ email: "", password: "" });
+
+  // Show error notification when error state changes
+  useEffect(() => {
+    if (error) {
+      showError(new Error(error), "Login Failed");
+    }
+  }, [error, showError]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -16,9 +25,10 @@ export function LoginForm(): React.ReactElement {
     e.preventDefault();
     try {
       await login(formData.email, formData.password);
+      showSuccess("Login successful! Redirecting to dashboard...");
       navigate("/dashboard");
     } catch (error) {
-      console.error("Login error:", error);
+      showError(error, "Login Failed");
     }
   };
 
@@ -49,8 +59,6 @@ export function LoginForm(): React.ReactElement {
           disabled={isLoading}
         />
       </div>
-
-      {error && <div className="error-message">{error}</div>}
 
       <button type="submit" disabled={isLoading}>
         {isLoading ? "Logging in..." : "Login"}

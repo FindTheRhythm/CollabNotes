@@ -1,6 +1,6 @@
 import React from "react";
-import { IComment } from "@/types/index.ts";
-import { CommentItem } from "@/components/Comments/CommentItem.tsx";
+import { IComment } from "@/types/index";
+import { CommentItem } from "@/components/Comments/CommentItem";
 
 interface CommentListProps {
   comments: IComment[];

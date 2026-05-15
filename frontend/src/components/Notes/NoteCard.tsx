@@ -1,5 +1,5 @@
 import React from "react";
-import { INoteWithAccess } from "@/types/index.ts";
+import { INoteWithAccess } from "@/types/index";
 import { Link } from "react-router-dom";
 
 interface NoteCardProps {

@@ -48,8 +48,8 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: collabnotes-backend
     environment:
       NODE_ENV: production

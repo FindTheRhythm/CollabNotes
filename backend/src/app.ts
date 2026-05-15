@@ -11,6 +11,10 @@ import commentRoutes from "./routes/comment.routes.js";
 
 const app: Application = express();
 
+console.log(`[APP] Initializing Express application...`);
+console.log(`[APP] Environment: ${config.node.env}`);
+console.log(`[APP] CORS origin: ${config.cors.origin}`);
+
 // Middlewares
 app.use(cors({ origin: config.cors.origin }));
 app.use(express.json());
@@ -18,12 +22,44 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging
 app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  const timestamp = new Date().toISOString();
+  const logMsg = `[HTTP] ${timestamp} ${req.method} ${req.path}`;
+  console.log(logMsg, {
+    headers: req.headers,
+    body: req.body
+  });
+  
+  // Log response when it finishes
+  const originalSend = res.send;
+  res.send = function(data) {
+    console.log(`[HTTP] ${req.method} ${req.path} - Status: ${res.statusCode}`);
+    return originalSend.call(this, data);
+  };
+  
   next();
+});
+
+// Root endpoint
+app.get("/", (_req: Request, res: Response) => {
+  console.log(`[APP] Root endpoint called`);
+  res.status(200).json({
+    message: "CollabNotes API",
+    version: "1.0.0",
+    status: "running",
+    endpoints: {
+      health: "/health",
+      auth: "/api/auth",
+      users: "/api/users",
+      notes: "/api/notes",
+      access: "/api/access",
+      comments: "/api/comments"
+    }
+  });
 });
 
 // Health check
 app.get("/health", (_req: Request, res: Response) => {
+  console.log(`[APP] Health check called`);
   res.status(200).json({ status: "ok" });
 });
 
@@ -36,6 +72,7 @@ app.use("/api/comments", commentRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
+  console.log(`[APP] 404 - Route not found: ${_req.method} ${_req.path}`);
   res.status(404).json({
     success: false,
     statusCode: 404,
@@ -45,5 +82,7 @@ app.use((_req: Request, res: Response) => {
 
 // Error handler
 app.use(errorHandler);
+
+console.log(`[APP] Express application initialized successfully`);
 
 export default app;

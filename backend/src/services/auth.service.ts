@@ -7,48 +7,90 @@ import { AuthTokensDTO, UserResponseDTO } from "../dto/auth.dto.js";
 import { IUser, IAuthPayload } from "../types/models.js";
 import { getCurrentTimestamp } from "../utils/helpers.js";
 
+const log = {
+  info: (msg: string, data?: any) => console.log(`[AUTH INFO] ${msg}`, data || ""),
+  error: (msg: string, data?: any) => console.error(`[AUTH ERROR] ${msg}`, data || ""),
+  debug: (msg: string, data?: any) => console.log(`[AUTH DEBUG] ${msg}`, data || ""),
+};
+
 export class AuthService {
   async register(email: string, username: string, password: string): Promise<{ user: UserResponseDTO; tokens: AuthTokensDTO }> {
-    const existingUser = await userRepository.findByEmail(email);
-    if (existingUser) {
-      throw new ConflictError("User with this email already exists");
+    try {
+      log.info("Register attempt", { email, username });
+
+      const existingUser = await userRepository.findByEmail(email);
+      if (existingUser) {
+        log.info("User already exists", { email });
+        throw new ConflictError("User with this email already exists");
+      }
+      log.debug("Email check passed");
+
+      const existingUsername = await userRepository.findByUsername(username);
+      if (existingUsername) {
+        log.info("Username already taken", { username });
+        throw new ConflictError("Username already taken");
+      }
+      log.debug("Username check passed");
+
+      log.debug("Hashing password...");
+      const passwordHash = await hashPassword(password);
+      
+      log.debug("Creating user in database...");
+      const user = await userRepository.create(email, username, passwordHash);
+      log.info("User created successfully", { userId: user.id, email, username });
+
+      log.debug("Generating tokens...");
+      const tokens = this.generateTokens(user);
+      
+      log.debug("Saving refresh token...");
+      await refreshTokenRepository.create(user.id, tokens.refreshToken, this.getRefreshTokenExpiry());
+      log.info("Refresh token saved");
+
+      log.info("Register successful", { userId: user.id, email });
+      return {
+        user: this.mapUserToDTO(user),
+        tokens
+      };
+    } catch (error) {
+      log.error("Register failed", { email, username, error: (error as Error).message });
+      throw error;
     }
-
-    const existingUsername = await userRepository.findByUsername(username);
-    if (existingUsername) {
-      throw new ConflictError("Username already taken");
-    }
-
-    const passwordHash = await hashPassword(password);
-    const user = await userRepository.create(email, username, passwordHash);
-
-    const tokens = this.generateTokens(user);
-    await refreshTokenRepository.create(user.id, tokens.refreshToken, this.getRefreshTokenExpiry());
-
-    return {
-      user: this.mapUserToDTO(user),
-      tokens
-    };
   }
 
   async login(email: string, password: string): Promise<{ user: UserResponseDTO; tokens: AuthTokensDTO }> {
-    const user = await userRepository.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedError("Invalid email or password");
+    try {
+      log.info("Login attempt", { email });
+
+      const user = await userRepository.findByEmail(email);
+      if (!user) {
+        log.info("User not found", { email });
+        throw new UnauthorizedError("Invalid email or password");
+      }
+      log.debug("User found", { userId: user.id });
+
+      log.debug("Comparing passwords...");
+      const isPasswordValid = await comparePasswords(password, user.password_hash);
+      if (!isPasswordValid) {
+        log.info("Invalid password", { email });
+        throw new UnauthorizedError("Invalid email or password");
+      }
+      log.debug("Password valid");
+
+      log.debug("Generating tokens...");
+      const tokens = this.generateTokens(user);
+      
+      log.debug("Saving refresh token...");
+      await refreshTokenRepository.create(user.id, tokens.refreshToken, this.getRefreshTokenExpiry());
+      log.info("Login successful", { userId: user.id, email });
+
+      return {
+        user: this.mapUserToDTO(user),
+        tokens
+      };
+    } catch (error) {
+      log.error("Login failed", { email, error: (error as Error).message });
+      throw error;
     }
-
-    const isPasswordValid = await comparePasswords(password, user.password_hash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedError("Invalid email or password");
-    }
-
-    const tokens = this.generateTokens(user);
-    await refreshTokenRepository.create(user.id, tokens.refreshToken, this.getRefreshTokenExpiry());
-
-    return {
-      user: this.mapUserToDTO(user),
-      tokens
-    };
   }
 
   async refreshAccessToken(refreshToken: string): Promise<AuthTokensDTO> {

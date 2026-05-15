@@ -1,24 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth.ts";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
+
+const log = {
+  info: (msg: string, data?: any) => console.log(`[REGISTER FORM] ${msg}`, data || ""),
+  error: (msg: string, data?: any) => console.error(`[REGISTER FORM ERROR] ${msg}`, data || ""),
+  debug: (msg: string, data?: any) => console.log(`[REGISTER FORM DEBUG] ${msg}`, data || ""),
+};
 
 export function RegisterForm(): React.ReactElement {
   const navigate = useNavigate();
   const { register, isLoading, error } = useAuth();
+  const { showError, showSuccess, showValidationError } = useToast();
   const [formData, setFormData] = useState({ email: "", username: "", password: "" });
+
+  // Show error notification when error state changes
+  useEffect(() => {
+    if (error) {
+      log.error("Error from Redux", { error });
+      showError(new Error(error), "Registration Failed");
+    }
+  }, [error, showError]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
+    log.debug(`Input change: ${name}`, { value: name === 'password' ? '***' : value });
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    log.info("Form submit", { email: formData.email, username: formData.username });
+    
     try {
+      log.debug("Calling register hook...");
       await register(formData.email, formData.username, formData.password);
+      log.info("Register hook completed successfully");
+      showSuccess("Registration successful! Redirecting to dashboard...");
+      log.info("Navigating to dashboard...");
       navigate("/dashboard");
-    } catch (error) {
-      console.error("Register error:", error);
+    } catch (error: any) {
+      log.error("Form submit error", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      // Check if it's a validation error
+      if ((error as any)?.response?.data?.errors) {
+        log.debug("Validation error detected");
+        showValidationError(error);
+      } else {
+        log.debug("General error detected");
+        showError(error, "Registration Failed");
+      }
     }
   };
 
@@ -66,8 +102,6 @@ export function RegisterForm(): React.ReactElement {
         />
         <small>Min 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character</small>
       </div>
-
-      {error && <div className="error-message">{error}</div>}
 
       <button type="submit" disabled={isLoading}>
         {isLoading ? "Registering..." : "Register"}

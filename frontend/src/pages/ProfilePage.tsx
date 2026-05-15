@@ -1,6 +1,6 @@
 import React from "react";
-import { MainLayout } from "@/layouts/MainLayout.tsx";
-import { useAuth } from "@/hooks/useAuth.ts";
+import { MainLayout } from "@/layouts/MainLayout";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ProfilePage(): React.ReactElement {
   const { user } = useAuth();

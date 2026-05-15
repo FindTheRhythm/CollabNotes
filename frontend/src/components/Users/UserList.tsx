@@ -1,6 +1,6 @@
 import React from "react";
-import { IUser } from "@/types/index.ts";
-import { UserCard } from "@/components/Users/UserCard.tsx";
+import { IUser } from "@/types";
+import { UserCard } from "@/components/Users/UserCard";
 
 interface UserListProps {
   users: IUser[];

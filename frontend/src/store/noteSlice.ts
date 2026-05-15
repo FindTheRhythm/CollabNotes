@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { INoteWithAccess } from "@/types/index.ts";
+import { INoteWithAccess } from "@/types/index";
 
-interface NoteState {
+export interface NoteState {
   notes: INoteWithAccess[];
   currentNote: INoteWithAccess | null;
   isLoading: boolean;
@@ -50,7 +50,7 @@ const noteSlice = createSlice({
       state.notes.unshift(action.payload);
     },
     updateNote: (state, action: PayloadAction<INoteWithAccess>) => {
-      const index = state.notes.findIndex(n => n.id === action.payload.id);
+      const index = state.notes.findIndex((n: INoteWithAccess) => n.id === action.payload.id);
       if (index !== -1) {
         state.notes[index] = action.payload;
       }
@@ -59,7 +59,7 @@ const noteSlice = createSlice({
       }
     },
     deleteNote: (state, action: PayloadAction<string>) => {
-      state.notes = state.notes.filter(n => n.id !== action.payload);
+      state.notes = state.notes.filter((n: INoteWithAccess) => n.id !== action.payload);
       if (state.currentNote?.id === action.payload) {
         state.currentNote = null;
       }

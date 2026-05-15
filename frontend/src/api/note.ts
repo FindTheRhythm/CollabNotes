@@ -1,5 +1,5 @@
-import api from "@/api/client.ts";
-import { INoteWithAccess, IPaginatedResponse } from "@/types/index.ts";
+import api from "@/api/client";
+import { INoteWithAccess, IPaginatedResponse } from "@/types/index";
 
 export const noteAPI = {
   getAll: async (page: number = 1, limit: number = 20): Promise<IPaginatedResponse<INoteWithAccess>> => {

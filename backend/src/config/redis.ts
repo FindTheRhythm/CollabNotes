@@ -9,11 +9,15 @@ export const redis = new Redis({
   retryStrategy: (times: number) => {
     const delay = Math.min(times * 50, 2000);
     return delay;
-  }
+  },
+  lazyConnect: config.node.isDev, // Don't auto-connect in dev mode
+  maxRetriesPerRequest: config.node.isDev ? 0 : null // Disable retries in dev
 });
 
 redis.on("error", (err: Error) => {
-  console.error("Redis error:", err);
+  if (!config.node.isDev) {
+    console.error("Redis error:", err);
+  }
 });
 
 redis.on("connect", () => {
@@ -21,12 +25,26 @@ redis.on("connect", () => {
 });
 
 export async function getCachedData<T>(key: string): Promise<T | null> {
-  const data = await redis.get(key);
-  return data ? JSON.parse(data) : null;
+  try {
+    const data = await redis.get(key);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    if (!config.node.isDev) {
+      throw error;
+    }
+    return null; // Return null in dev mode if Redis is not available
+  }
 }
 
 export async function setCachedData<T>(key: string, data: T, ttl: number = 3600): Promise<void> {
-  await redis.setex(key, ttl, JSON.stringify(data));
+  try {
+    await redis.setex(key, ttl, JSON.stringify(data));
+  } catch (error) {
+    if (!config.node.isDev) {
+      throw error;
+    }
+    // Silently fail in dev mode
+  }
 }
 
 export async function deleteCachedData(key: string): Promise<void> {

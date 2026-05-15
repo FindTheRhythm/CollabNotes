@@ -1,5 +1,5 @@
-import api from "@/api/client.ts";
-import { IComment } from "@/types/index.ts";
+import api from "@/api/client";
+import { IComment } from "@/types/index";
 
 export const commentAPI = {
   getNoteComments: async (noteId: string): Promise<IComment[]> => {

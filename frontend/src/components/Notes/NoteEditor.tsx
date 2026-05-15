@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { INoteWithAccess } from "@/types/index.ts";
+import { INoteWithAccess } from "@/types/index";
 
 interface NoteEditorProps {
   note?: INoteWithAccess;

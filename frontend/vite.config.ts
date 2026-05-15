@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -13,14 +14,24 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:3000",
+        target: "http://localhost:3001",
         changeOrigin: true
       }
     }
   },
   build: {
     outDir: "dist",
-    sourcemap: false,
-    minify: "terser"
+    sourcemap: true,
+    minify: "esbuild"
+  },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts"
+  },
+  css: {
+    modules: {
+      localsConvention: "camelCase"
+    }
   }
 });

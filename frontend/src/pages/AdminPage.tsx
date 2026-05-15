@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { MainLayout } from "@/layouts/MainLayout.tsx";
-import { userAPI } from "@/api/user.ts";
-import { IUser } from "@/types/index.ts";
-import { UserList } from "@/components/Users/UserList.tsx";
+import { MainLayout } from "@/layouts/MainLayout";
+import { userAPI } from "@/api/user";
+import { IUser } from "@/types";
+import { UserList } from "@/components/Users/UserList";
 
 export default function AdminPage(): React.ReactElement {
   const [users, setUsers] = useState<IUser[]>([]);

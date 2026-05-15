@@ -1,6 +1,6 @@
 import React from "react";
-import { MainLayout } from "@/layouts/MainLayout.tsx";
-import { LoginForm } from "@/components/Auth/LoginForm.tsx";
+import { MainLayout } from "@/layouts/MainLayout";
+import { LoginForm } from "@/components/Auth/LoginForm";
 import { Link } from "react-router-dom";
 
 export default function LoginPage(): React.ReactElement {

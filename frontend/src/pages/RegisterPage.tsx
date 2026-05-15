@@ -1,6 +1,6 @@
 import React from "react";
-import { MainLayout } from "@/layouts/MainLayout.tsx";
-import { RegisterForm } from "@/components/Auth/RegisterForm.tsx";
+import { MainLayout } from "@/layouts/MainLayout";
+import { RegisterForm } from "@/components/Auth/RegisterForm";
 import { Link } from "react-router-dom";
 
 export default function RegisterPage(): React.ReactElement {

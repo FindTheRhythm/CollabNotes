@@ -1,5 +1,5 @@
-import api from "@/api/client.ts";
-import { ISharedAccess } from "@/types/index.ts";
+import api from "@/api/client";
+import { ISharedAccess } from "@/types/index";
 
 export const accessAPI = {
   share: async (noteId: string, userId: string, permission: string): Promise<ISharedAccess> => {
