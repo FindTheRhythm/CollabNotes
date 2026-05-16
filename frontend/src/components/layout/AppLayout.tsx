@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store";
 import { TopToolbar } from "./TopToolbar";
 import { LeftSidebar, SidebarItem } from "./LeftSidebar";
-import { NotebookPanel } from "./NotebookPanel";
+import { NotebookPanel } from "./NotebookPanel/NotebookPanel";
 import { SectionPagePanel } from "./SectionPagePanel";
 import { PageEditor } from "../editor";
 import {
@@ -27,7 +27,7 @@ export const AppLayout: React.FC = () => {
   // Load data
   const { currentWorkspace, loadWorkspaces } =
     useWorkspaceManagement();
-  const { notebooks, currentNotebook, loadNotebooks, selectNotebook } =
+  const { notebooks, currentNotebook, loadNotebooks, selectNotebook, createNotebook } =
     useNotebookManagement();
   const { sections, currentSection, loadSections, selectSection, createSection } =
     useSectionManagement();
@@ -37,6 +37,7 @@ export const AppLayout: React.FC = () => {
     loadPages,
     loadPage: loadPageData,
     createNewPage,
+    toggleFavorite,
   } = usePageManagement();
 
   useEffect(() => {
@@ -72,8 +73,8 @@ export const AppLayout: React.FC = () => {
     }
   }, [currentSection, loadPages, dispatch]);
 
-  const handleSelectNotebook = (notebookId: string) => {
-    selectNotebook(notebookId);
+  const handleSelectNotebook = (notebook: any) => {
+    selectNotebook(notebook.id);
   };
 
   const handleSelectSection = (section: any) => {
@@ -167,11 +168,13 @@ export const AppLayout: React.FC = () => {
         {activeSection === "notebooks" && (
           <>
             <NotebookPanel
-              notebooks={notebooks.map((nb) => ({ id: nb.id, title: nb.name }))}
-              onSelect={handleSelectNotebook}
+              notebooks={notebooks}
+              currentNotebook={currentNotebook || undefined}
+              onSelectNotebook={handleSelectNotebook}
+              onCreateNotebook={createNotebook}
             />
 
-            {currentNotebook && (
+            {currentNotebook ? (
               <>
                 <SectionPagePanel
                   sections={sections}
@@ -182,6 +185,7 @@ export const AppLayout: React.FC = () => {
                   onSelectPage={handleSelectPage}
                   onCreatePage={handleCreatePage}
                   onCreateSection={handleCreateSection}
+                  onToggleFavorite={toggleFavorite}
                 />
 
                 {currentPage ? (
@@ -197,6 +201,13 @@ export const AppLayout: React.FC = () => {
                   </div>
                 )}
               </>
+            ) : (
+              <div className={styles.editorArea}>
+                <div className={styles.emptyState}>
+                  <h2>Откройте блокнот</h2>
+                  <p>Выберите блокнот слева или создайте новый, чтобы начать работу.</p>
+                </div>
+              </div>
             )}
           </>
         )}

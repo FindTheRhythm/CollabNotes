@@ -7,6 +7,7 @@ import {
   addPage,
   deletePage as deletePageAction,
   updatePageSyncStatus,
+  toggleFavorite,
 } from "@/store/pageSlice";
 import { pageAPI } from "@/api/pageAPI";
 
@@ -101,6 +102,10 @@ export const usePageManagement = () => {
     [dispatch]
   );
 
+  const toggleFavoritePage = useCallback((pageId: string) => {
+    dispatch(toggleFavorite(pageId));
+  }, [dispatch]);
+
   return {
     currentPage,
     pages,
@@ -110,5 +115,6 @@ export const usePageManagement = () => {
     createNewPage,
     deletePage,
     duplicatePage,
+    toggleFavorite: toggleFavoritePage,
   };
 };

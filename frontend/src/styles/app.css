@@ -115,6 +115,10 @@ body.dark-theme {
   --color-background-hover: #2A2A2A;
   --color-background-active: #333333;
 
+  /* Surface variants */
+  --color-surface-strong: #1F1F1F;
+  --color-surface-soft: #171717;
+
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -329,7 +333,7 @@ textarea {
 
 .navbar-user {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
 }
 
@@ -337,25 +341,39 @@ textarea {
   color: var(--color-text-secondary);
 }
 
-.logout-btn,
-.theme-toggle-btn {
+.logout-btn {
   background-color: var(--color-error);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1rem;
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.logout-btn:hover,
-.theme-toggle-btn:hover {
-  background-color: #c82333;
-  transform: translateY(-1px);
+  transition: background-color 0.25s, transform 0.2s;
 }
 
 .logout-btn:hover {
   background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background-color: var(--color-surface-strong);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color 0.25s, transform 0.2s, color 0.25s;
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--color-background-active);
+  color: var(--color-primary);
+  transform: scale(1.05);
 }
 
 .main-content {
@@ -447,12 +465,13 @@ textarea {
 }
 
 .auth-container {
-  background-color: white;
+  background-color: var(--color-surface);
   padding: 2rem;
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
   width: 100%;
   max-width: 400px;
+  border: 1px solid var(--color-border);
 }
 
 .auth-form {
@@ -470,15 +489,26 @@ textarea {
 .form-group label {
   margin-bottom: 0.5rem;
   font-weight: 500;
+  color: var(--color-text-primary);
 }
 
 .form-group input,
 .form-group textarea {
   padding: 0.5rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
   font-size: 1rem;
   font-family: inherit;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(91, 75, 255, 0.1);
 }
 
 .form-group small {
