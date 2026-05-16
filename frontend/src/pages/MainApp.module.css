@@ -1,0 +1,23 @@
+.mainApp {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.light {
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  --color-background: #F5F5F5;
+  --color-surface: #F7F8FA;
+}
+
+.dark {
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  --color-background: #121212;
+  --color-surface: #1e1e1e;
+}

@@ -1,0 +1,16 @@
+{
+  "name": "collabnotes-websocket",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.8.1",
+    "redis": "^4.6.7",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "jsonwebtoken": "^9.0.0"
+  }
+}

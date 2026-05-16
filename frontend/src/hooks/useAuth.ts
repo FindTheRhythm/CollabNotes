@@ -15,6 +15,10 @@ export function useAuth() {
 
   const register = async (email: string, username: string, password: string): Promise<void> => {
     log.info("Register hook called", { email, username });
+    if (auth.isLoading) {
+      log.debug("Register skipped - already loading");
+      return;
+    }
     dispatch(setLoading(true));
     try {
       log.debug("Calling authAPI.register...");
@@ -44,6 +48,10 @@ export function useAuth() {
 
   const login = async (email: string, password: string): Promise<void> => {
     log.info("Login hook called", { email });
+    if (auth.isLoading) {
+      log.debug("Login skipped - already loading");
+      return;
+    }
     dispatch(setLoading(true));
     try {
       log.debug("Calling authAPI.login...");

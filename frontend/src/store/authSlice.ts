@@ -10,11 +10,12 @@ export interface AuthState {
   error: string | null;
 }
 
+const isBrowser = typeof localStorage !== "undefined";
 const initialState: AuthState = {
   user: null,
-  accessToken: localStorage.getItem("accessToken"),
-  refreshToken: localStorage.getItem("refreshToken"),
-  isAuthenticated: !!localStorage.getItem("accessToken"),
+  accessToken: isBrowser ? localStorage.getItem("accessToken") : null,
+  refreshToken: isBrowser ? localStorage.getItem("refreshToken") : null,
+  isAuthenticated: isBrowser ? !!localStorage.getItem("accessToken") : false,
   isLoading: false,
   error: null
 };

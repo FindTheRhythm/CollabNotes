@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUIState } from "@/hooks/useUIState";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -8,6 +9,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps): React.ReactElement {
   const { user, isAuthenticated, logout } = useAuth();
+  const { theme, toggleTheme } = useUIState();
 
   return (
     <div className="main-layout">

@@ -1,20 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 
 export function LoginForm(): React.ReactElement {
   const navigate = useNavigate();
-  const { login, isLoading, error } = useAuth();
+  const { login, isLoading } = useAuth();
   const { showError, showSuccess } = useToast();
   const [formData, setFormData] = useState({ email: "", password: "" });
-
-  // Show error notification when error state changes
-  useEffect(() => {
-    if (error) {
-      showError(new Error(error), "Login Failed");
-    }
-  }, [error, showError]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
@@ -11,17 +11,9 @@ const log = {
 
 export function RegisterForm(): React.ReactElement {
   const navigate = useNavigate();
-  const { register, isLoading, error } = useAuth();
+  const { register, isLoading } = useAuth();
   const { showError, showSuccess, showValidationError } = useToast();
   const [formData, setFormData] = useState({ email: "", username: "", password: "" });
-
-  // Show error notification when error state changes
-  useEffect(() => {
-    if (error) {
-      log.error("Error from Redux", { error });
-      showError(new Error(error), "Registration Failed");
-    }
-  }, [error, showError]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;

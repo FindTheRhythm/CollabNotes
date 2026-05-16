@@ -6,6 +6,18 @@ import { createCommentValidation, updateCommentValidation, commentIdValidation, 
 
 const router = Router();
 
+router.get("/", (_req, res) => {
+  res.status(200).json({
+    message: "Comment routes",
+    endpoints: {
+      create: "/api/comments",
+      getByNote: "/api/comments/:noteId",
+      update: "/api/comments/:id",
+      delete: "/api/comments/:id"
+    }
+  });
+});
+
 router.post(
   "/",
   authMiddleware,

@@ -32,8 +32,33 @@ export function Toast({ toast, onClose }: ToastProps): React.ReactElement {
 
   const handleShowDetails = (): void => {
     if (toast.details) {
-      console.log("Toast Details:", toast.details);
-      alert(`Full Error Details:\n\n${JSON.stringify(toast.details, null, 2)}`);
+      // Log full error details to console for easy copying
+      console.error("Full Error Details:", toast.details);
+
+      const detailsStr = JSON.stringify(toast.details, null, 2);
+
+      // Try copying to clipboard; if unavailable, open a new window with the details
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        navigator.clipboard.writeText(detailsStr).then(() => {
+          console.log("Error details copied to clipboard");
+        }).catch(() => {
+          const w = window.open("", "_blank");
+          if (w) {
+            w.document.write(`<pre>${detailsStr.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</pre>`);
+            w.document.title = "Error Details";
+          } else {
+            console.warn("Unable to open new window to show details");
+          }
+        });
+      } else {
+        const w = window.open("", "_blank");
+        if (w) {
+          w.document.write(`<pre>${detailsStr.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</pre>`);
+          w.document.title = "Error Details";
+        } else {
+          console.warn("Unable to open new window to show details");
+        }
+      }
     }
   };
 

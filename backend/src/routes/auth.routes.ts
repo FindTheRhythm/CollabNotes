@@ -6,6 +6,19 @@ import { registerValidation, loginValidation, refreshTokenValidation } from "../
 
 const router = Router();
 
+router.get("/", (_req, res) => {
+  res.status(200).json({
+    message: "Auth routes",
+    endpoints: {
+      register: "/api/auth/register",
+      login: "/api/auth/login",
+      logout: "/api/auth/logout",
+      refresh: "/api/auth/refresh",
+      me: "/api/auth/me"
+    }
+  });
+});
+
 router.post(
   "/register",
   registerValidation(),

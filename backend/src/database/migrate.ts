@@ -11,7 +11,7 @@ async function runMigrations(): Promise<void> {
     console.log("🔄 Running migrations...");
 
     // Resolve migrations directory relative to the app root
-    const migrationsDir = path.join(__dirname, "../../..", "database", "migrations");
+    const migrationsDir = path.join(__dirname, "../..", "database", "migrations");
 
     if (!fs.existsSync(migrationsDir)) {
       console.log("⚠️  Migrations directory not found:", migrationsDir);
@@ -91,8 +91,16 @@ async function runMigrations(): Promise<void> {
       const sql = fs.readFileSync(filePath, "utf-8");
 
       console.log(`Running: ${file}`);
-      await query(sql);
-      console.log(`✅ ${file} completed`);
+      try {
+        await query(sql);
+        console.log(`✅ ${file} completed`);
+      } catch (error: any) {
+        if (error?.code === "42P07" || error?.code === "42710") {
+          console.warn(`⚠️  Skipping object already exists error: ${error.message}`);
+          continue;
+        }
+        throw error;
+      }
     }
 
     console.log("✅ All migrations completed successfully");

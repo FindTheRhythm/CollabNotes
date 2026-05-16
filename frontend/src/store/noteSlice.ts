@@ -38,8 +38,13 @@ const noteSlice = createSlice({
       state.error = action.payload;
     },
     setNotes: (state, action: PayloadAction<{ notes: INoteWithAccess[]; pagination: any }>) => {
-      state.notes = action.payload.notes;
-      state.pagination = action.payload.pagination;
+      state.notes = action.payload.notes || [];
+      state.pagination = action.payload.pagination || {
+        page: 1,
+        limit: 20,
+        total: 0,
+        pages: 0
+      };
       state.isLoading = false;
       state.error = null;
     },
@@ -47,9 +52,11 @@ const noteSlice = createSlice({
       state.currentNote = action.payload;
     },
     addNote: (state, action: PayloadAction<INoteWithAccess>) => {
+      if (!state.notes) state.notes = [];
       state.notes.unshift(action.payload);
     },
     updateNote: (state, action: PayloadAction<INoteWithAccess>) => {
+      if (!state.notes) state.notes = [];
       const index = state.notes.findIndex((n: INoteWithAccess) => n.id === action.payload.id);
       if (index !== -1) {
         state.notes[index] = action.payload;
@@ -59,6 +66,7 @@ const noteSlice = createSlice({
       }
     },
     deleteNote: (state, action: PayloadAction<string>) => {
+      if (!state.notes) state.notes = [];
       state.notes = state.notes.filter((n: INoteWithAccess) => n.id !== action.payload);
       if (state.currentNote?.id === action.payload) {
         state.currentNote = null;

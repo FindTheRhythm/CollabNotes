@@ -10,6 +10,6 @@ CREATE TABLE IF NOT EXISTS shared_access (
     UNIQUE(note_id, user_id)
 );
 
-CREATE INDEX idx_shared_access_note_id ON shared_access(note_id);
-CREATE INDEX idx_shared_access_user_id ON shared_access(user_id);
-CREATE INDEX idx_shared_access_permission ON shared_access(permission);
+CREATE INDEX IF NOT EXISTS idx_shared_access_note_id ON shared_access(note_id);
+CREATE INDEX IF NOT EXISTS idx_shared_access_user_id ON shared_access(user_id);
+CREATE INDEX IF NOT EXISTS idx_shared_access_permission ON shared_access(permission);

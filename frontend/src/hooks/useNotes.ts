@@ -6,6 +6,9 @@ import { noteAPI } from "@/api/note";
 export function useNotes() {
   const dispatch = useDispatch<AppDispatch>();
   const notes = useSelector((state: RootState) => state.notes);
+  
+  console.log("[NOTES HOOK] Current notes state:", notes);
+  console.log("[NOTES HOOK] notes.notes value:", notes?.notes);
 
   const fetchNotes = async (page: number = 1, limit: number = 20): Promise<void> => {
     dispatch(setLoading(true));
@@ -111,7 +114,11 @@ export function useNotes() {
   };
 
   return {
-    ...notes,
+    notes: notes?.notes || [],
+    currentNote: notes?.currentNote || null,
+    isLoading: notes?.isLoading || false,
+    error: notes?.error || null,
+    pagination: notes?.pagination || { page: 1, limit: 20, total: 0, pages: 0 },
     fetchNotes,
     fetchNoteById,
     fetchUserNotes,

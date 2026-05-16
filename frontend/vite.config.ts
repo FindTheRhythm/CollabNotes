@@ -14,7 +14,10 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:3001",
+        // During local development proxy API requests to the backend.
+        // Backend runs on port 3000 in the docker-compose setup.
+        // If you run the dev server inside a container, change this to http://backend:3000
+        target: "http://localhost:3000",
         changeOrigin: true
       }
     }

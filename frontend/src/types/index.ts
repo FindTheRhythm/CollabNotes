@@ -76,3 +76,80 @@ export interface IApiResponse<T> {
   data?: T;
   errors?: Record<string, string[]>;
 }
+
+// ========== Application-specific types ==========
+
+export interface ContentBlock {
+  id: string;
+  type:
+    | "text"
+    | "heading"
+    | "heading2"
+    | "heading3"
+    | "bullet"
+    | "numbered"
+    | "checklist"
+    | "quote"
+    | "code"
+    | "image"
+    | "table"
+    | "divider"
+    | "formula";
+  content: string;
+  metadata?: Record<string, any>;
+  order: number;
+}
+
+export interface EditorState {
+  blocks: ContentBlock[];
+  selectedBlockId: string | null;
+  isDirty: boolean;
+  lastSaved: Date | null;
+}
+
+export interface SharePermission {
+  userId: string;
+  type: "view" | "edit" | "comment";
+  grantedBy: string;
+  grantedAt: string;
+}
+
+export interface PageVersion {
+  id: string;
+  pageId: string;
+  content: string;
+  version: number;
+  createdBy: string;
+  createdAt: string;
+  changesSummary?: string;
+}
+
+export interface ContextMenuItem {
+  label: string;
+  action: string;
+  icon?: string;
+  submenu?: ContextMenuItem[];
+  isDangerous?: boolean;
+}
+
+export interface KeyboardShortcut {
+  key: string;
+  ctrl?: boolean;
+  shift?: boolean;
+  alt?: boolean;
+  action: string;
+}
+
+export interface DragDropEvent {
+  source: {
+    droppableId: string;
+    index: number;
+  };
+  destination?: {
+    droppableId: string;
+    index: number;
+  };
+  draggableId: string;
+  type: string;
+  reason: "DROP" | "CANCEL";
+}

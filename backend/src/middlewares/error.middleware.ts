@@ -30,6 +30,21 @@ export function errorHandler(err: Error, req: Request, res: Response, _next: Nex
     return;
   }
 
+  const parseError = err as any;
+  if (parseError?.type === "entity.parse.failed" && parseError?.statusCode === 400) {
+    const message = "Malformed JSON in request body";
+    log.error("Body parse error", {
+      statusCode: 400,
+      message,
+      body: parseError.body,
+      method,
+      url
+    });
+
+    res.status(400).json(createErrorResponse(400, message));
+    return;
+  }
+
   log.error("Unexpected error", {
     name: err.name,
     message: err.message,
@@ -41,7 +56,7 @@ export function errorHandler(err: Error, req: Request, res: Response, _next: Nex
   if (config.node.isDev) {
     res.status(500).json(
       createErrorResponse(500, err.message || "Internal server error", {
-        stack: err.stack
+        stack: err.stack ? [err.stack] : ["No stack available"]
       })
     );
   } else {

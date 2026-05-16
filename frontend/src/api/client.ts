@@ -1,7 +1,14 @@
 import axios, { AxiosInstance } from "axios";
 import { logError, parseError } from "@/utils/errorHandler";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+// In production (static build served from nginx) prefer a relative API path so
+// the browser will call the same origin `/api` which the reverse-proxy forwards
+// to the backend. In development fall back to the local backend port.
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "/api" : "http://localhost:3000/api");
+
+if (!import.meta.env.VITE_API_URL) {
+  console.info(`[API CLIENT] VITE_API_URL not provided, using ${API_URL}`);
+}
 
 console.log(`[API CLIENT] Initializing with API_URL: ${API_URL}`);
 

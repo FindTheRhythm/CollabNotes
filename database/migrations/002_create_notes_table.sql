@@ -9,11 +9,11 @@ CREATE TABLE IF NOT EXISTS notes (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_notes_owner_id ON notes(owner_id);
-CREATE INDEX idx_notes_created_at ON notes(created_at);
-CREATE INDEX idx_notes_title ON notes(title);
+CREATE INDEX IF NOT EXISTS idx_notes_owner_id ON notes(owner_id);
+CREATE INDEX IF NOT EXISTS idx_notes_created_at ON notes(created_at);
+CREATE INDEX IF NOT EXISTS idx_notes_title ON notes(title);
 
 -- Add full text search
-CREATE INDEX idx_notes_title_content_tsvector ON notes USING GIN(
+CREATE INDEX IF NOT EXISTS idx_notes_title_content_tsvector ON notes USING GIN(
     to_tsvector('english', title || ' ' || content)
 );

@@ -8,6 +8,9 @@ import userRoutes from "./routes/user.routes.js";
 import noteRoutes from "./routes/note.routes.js";
 import accessRoutes from "./routes/access.routes.js";
 import commentRoutes from "./routes/comment.routes.js";
+import pageRoutes from "./routes/page.routes.js";
+import notebookRoutes from "./routes/notebook.routes.js";
+import contentBlockRoutes from "./routes/contentBlock.routes.js";
 
 const app: Application = express();
 
@@ -48,12 +51,28 @@ app.get("/", (_req: Request, res: Response) => {
     status: "running",
     endpoints: {
       health: "/health",
+      api: "/api",
       auth: "/api/auth",
       users: "/api/users",
       notes: "/api/notes",
       access: "/api/access",
       comments: "/api/comments"
-    }
+    },
+    notes: "Most API groups require auth. Use /api/auth to register/login and obtain tokens."
+  });
+});
+
+app.get("/api", (_req: Request, res: Response) => {
+  res.status(200).json({
+    message: "CollabNotes API groups",
+    endpoints: {
+      auth: "/api/auth",
+      users: "/api/users",
+      notes: "/api/notes",
+      access: "/api/access",
+      comments: "/api/comments"
+    },
+    info: "Use GET /api/auth for auth route discovery. Most other groups require Bearer token authentication."
   });
 });
 
@@ -69,6 +88,9 @@ app.use("/api/users", userRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/access", accessRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/pages", pageRoutes);
+app.use("/api/notebooks", notebookRoutes);
+app.use("/api/blocks", contentBlockRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

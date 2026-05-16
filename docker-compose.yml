@@ -37,7 +37,7 @@ services:
     image: dpage/pgadmin4:latest
     container_name: collabnotes-pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@collabnotes.local
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin_password
     ports:
       - "5050:80"
@@ -76,15 +76,35 @@ services:
       - collabnotes-network
     restart: unless-stopped
 
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    container_name: collabnotes-websocket
+    environment:
+      PORT: 4000
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-postgres_password}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      BACKEND_URL: http://backend:3000
+    ports:
+      - "4000:4000"
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - collabnotes-network
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: collabnotes-frontend
     environment:
-      VITE_API_URL: http://localhost/api
-    ports:
-      - "5173:80"
+      VITE_API_URL: /api
     depends_on:
       - backend
     networks:
