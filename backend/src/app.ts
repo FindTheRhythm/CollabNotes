@@ -11,6 +11,8 @@ import commentRoutes from "./routes/comment.routes.js";
 import pageRoutes from "./routes/page.routes.js";
 import notebookRoutes from "./routes/notebook.routes.js";
 import contentBlockRoutes from "./routes/contentBlock.routes.js";
+import workspaceRoutes from "./routes/workspace.routes.js";
+import sectionRoutes from "./routes/section.routes.js";
 
 const app: Application = express();
 
@@ -19,7 +21,15 @@ console.log(`[APP] Environment: ${config.node.env}`);
 console.log(`[APP] CORS origin: ${config.cors.origin}`);
 
 // Middlewares
-app.use(cors({ origin: config.cors.origin }));
+// Enable credentials and allow common headers for preflight requests
+app.use(
+  cors({
+    origin: config.cors.origin,
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -56,7 +66,8 @@ app.get("/", (_req: Request, res: Response) => {
       users: "/api/users",
       notes: "/api/notes",
       access: "/api/access",
-      comments: "/api/comments"
+      comments: "/api/comments",
+      workspaces: "/api/workspaces"
     },
     notes: "Most API groups require auth. Use /api/auth to register/login and obtain tokens."
   });
@@ -70,7 +81,8 @@ app.get("/api", (_req: Request, res: Response) => {
       users: "/api/users",
       notes: "/api/notes",
       access: "/api/access",
-      comments: "/api/comments"
+      comments: "/api/comments",
+      workspaces: "/api/workspaces"
     },
     info: "Use GET /api/auth for auth route discovery. Most other groups require Bearer token authentication."
   });
@@ -90,7 +102,9 @@ app.use("/api/access", accessRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/pages", pageRoutes);
 app.use("/api/notebooks", notebookRoutes);
+app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/blocks", contentBlockRoutes);
+app.use("/api/sections", sectionRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

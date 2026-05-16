@@ -32,10 +32,13 @@ export const SectionPagePanel: React.FC<SectionPagePanelProps> = ({
   const [newPageTitle, setNewPageTitle] = useState("");
   const [renamingPageId, setRenamingPageId] = useState<string | null>(null);
   const [renamePageValue, setRenamePageValue] = useState("");
+  const [pageContextMenu, setPageContextMenu] = useState({ visible: false, x: 0, y: 0 });
 
   const handleCreateSection = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[SectionPagePanel] handleCreateSection called:', { newSectionName });
     if (newSectionName.trim()) {
+      console.log('[SectionPagePanel] Calling onCreateSection with:', newSectionName);
       onCreateSection?.(newSectionName);
       setNewSectionName("");
       setIsCreatingSection(false);
@@ -44,7 +47,9 @@ export const SectionPagePanel: React.FC<SectionPagePanelProps> = ({
 
   const handleCreatePage = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[SectionPagePanel] handleCreatePage called:', { newPageTitle, isCreatingPage });
     if (newPageTitle.trim()) {
+      console.log('[SectionPagePanel] Calling onCreatePage with:', newPageTitle);
       onCreatePage?.(newPageTitle);
       setNewPageTitle("");
       setIsCreatingPage(false);
@@ -108,16 +113,9 @@ export const SectionPagePanel: React.FC<SectionPagePanelProps> = ({
       {/* Pages List */}
       <div className={styles.pagesContainer}>
         <div className={styles.pagesHeader}>
-          <h3 className={styles.pagesTitle}>Страницы</h3>
-          <button
-            className={styles.addPageButton}
-            onClick={() => setIsCreatingPage(true)}
-            title="Создать страницу"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" fill="none" />
-            </svg>
-          </button>
+          <h3 className={styles.pagesTitle} onContextMenu={(e) => e.stopPropagation()}>
+            Страницы
+          </h3>
         </div>
 
         {isCreatingPage && (
@@ -134,7 +132,14 @@ export const SectionPagePanel: React.FC<SectionPagePanelProps> = ({
           </form>
         )}
 
-        <div className={styles.pagesList}>
+        <div
+          className={styles.pagesList}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            // show context menu when user right-clicks empty area under pages
+            setPageContextMenu({ visible: true, x: e.clientX, y: e.clientY });
+          }}
+        >
           {pages.map((page) => (
             <div
               key={page.id}
@@ -190,6 +195,30 @@ export const SectionPagePanel: React.FC<SectionPagePanelProps> = ({
           ))}
         </div>
       </div>
+
+      {pageContextMenu.visible && (
+        <div
+          className={styles.contextMenuOverlay}
+          onClick={() => setPageContextMenu({ visible: false, x: 0, y: 0 })}
+        >
+          <div
+            className={styles.contextMenu}
+            style={{ left: pageContextMenu.x, top: pageContextMenu.y }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.contextMenuItem}
+              onClick={() => {
+                setIsCreatingPage(true);
+                setPageContextMenu({ visible: false, x: 0, y: 0 });
+              }}
+            >
+              Создать страницу
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

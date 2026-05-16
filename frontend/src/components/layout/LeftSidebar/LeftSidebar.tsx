@@ -12,6 +12,7 @@ export interface SidebarItem {
 interface LeftSidebarProps {
   items: SidebarItem[];
   onItemClick?: (itemId: string) => void;
+  onItemContextMenu?: (itemId: string, e: React.MouseEvent<HTMLButtonElement>) => void;
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
 }
@@ -19,6 +20,7 @@ interface LeftSidebarProps {
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   items,
   onItemClick,
+  onItemContextMenu,
   collapsed = false,
   onCollapsedChange,
 }) => {
@@ -34,6 +36,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             key={item.id}
             className={`${styles.sidebarItem} ${item.active ? styles.active : ""}`}
             onClick={() => onItemClick?.(item.id)}
+            onContextMenu={(e) => {
+              onItemContextMenu?.(item.id, e);
+            }}
             title={item.label}
           >
             <span className={styles.icon}>{item.icon}</span>

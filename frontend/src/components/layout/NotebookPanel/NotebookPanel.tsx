@@ -7,10 +7,10 @@ interface NotebookPanelProps {
   currentNotebook?: Notebook;
   onSelectNotebook?: (notebook: Notebook) => void;
   onCreateNotebook?: (name: string) => void;
-  onContextMenu?: (
-    e: React.MouseEvent,
-    notebook: Notebook
-  ) => void;
+  isCreating?: boolean;
+  onToggleCreating?: (value: boolean) => void;
+  onRenameNotebook?: (notebookId: string, newName: string) => void;
+  onDeleteNotebook?: (notebookId: string) => void;
 }
 
 export const NotebookPanel: React.FC<NotebookPanelProps> = ({
@@ -18,41 +18,47 @@ export const NotebookPanel: React.FC<NotebookPanelProps> = ({
   currentNotebook,
   onSelectNotebook,
   onCreateNotebook,
-  onContextMenu,
+  isCreating = false,
+  onToggleCreating,
+  onRenameNotebook,
+  onDeleteNotebook,
 }) => {
-  const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0 });
+  const [notebookContextMenu, setNotebookContextMenu] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    notebookId?: string;
+  }>({ visible: false, x: 0, y: 0 });
 
-  const handleCreate = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = (e: React.FormEvent | React.KeyboardEvent) => {
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+
     if (newName.trim()) {
-      onCreateNotebook?.(newName);
+      console.log('[NotebookPanel] create triggered:', newName.trim());
+      onCreateNotebook?.(newName.trim());
       setNewName("");
-      setIsCreating(false);
+      onToggleCreating?.(false);
     }
   };
 
   const handleSaveRename = (_notebookId?: string) => {
-    if (renameValue.trim()) {
+    if (renameValue.trim() && _notebookId) {
+      onRenameNotebook?.(_notebookId, renameValue.trim());
       setRenamingId(null);
+      setRenameValue("");
     }
   };
 
   return (
     <div className={styles.panel}>
-      <div className={styles.header}>
+      <div className={styles.header} onContextMenu={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>Блокноты</h2>
-        <button
-          className={styles.addButton}
-          onClick={() => setIsCreating(true)}
-          title="Создать блокнот"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" fill="none" />
-          </svg>
-        </button>
       </div>
 
       {isCreating && (
@@ -64,12 +70,31 @@ export const NotebookPanel: React.FC<NotebookPanelProps> = ({
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             autoFocus
-            onBlur={() => !newName && setIsCreating(false)}
+            onBlur={() => {
+              if (!newName.trim()) {
+                onToggleCreating?.(false);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleCreate(e);
+              }
+            }}
           />
         </form>
       )}
 
-      <div className={styles.list}>
+      <div
+        className={styles.list}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          // Only show create menu when right-clicking empty area (not on a notebook item)
+          if ((e.target as HTMLElement).className === styles.list) {
+            setNotebookContextMenu({ visible: false, x: 0, y: 0 });
+            setContextMenu({ visible: true, x: e.clientX, y: e.clientY });
+          }
+        }}
+      >
         {notebooks.map((notebook) => (
           <div
             key={notebook.id}
@@ -77,7 +102,18 @@ export const NotebookPanel: React.FC<NotebookPanelProps> = ({
               currentNotebook?.id === notebook.id ? styles.active : ""
             }`}
             onClick={() => onSelectNotebook?.(notebook)}
-            onContextMenu={(e) => onContextMenu?.(e, notebook)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // Close create menu, open notebook-specific menu
+              setContextMenu({ visible: false, x: 0, y: 0 });
+              setNotebookContextMenu({
+                visible: true,
+                x: e.clientX,
+                y: e.clientY,
+                notebookId: notebook.id,
+              });
+            }}
           >
             {renamingId === notebook.id ? (
               <input
@@ -116,6 +152,84 @@ export const NotebookPanel: React.FC<NotebookPanelProps> = ({
           </div>
         ))}
       </div>
+
+      {contextMenu.visible && (
+        <div
+          className={styles.contextMenuOverlay}
+          onClick={() => {
+            setContextMenu({ visible: false, x: 0, y: 0 });
+            setNotebookContextMenu({ visible: false, x: 0, y: 0 });
+          }}
+        >
+          <div
+            className={styles.contextMenu}
+            style={{ left: contextMenu.x, top: contextMenu.y }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.contextMenuItem}
+              onClick={() => {
+                onToggleCreating?.(true);
+                setContextMenu({ visible: false, x: 0, y: 0 });
+                setNotebookContextMenu({ visible: false, x: 0, y: 0 });
+              }}
+            >
+              Создать блокнот
+            </button>
+          </div>
+        </div>
+      )}
+
+      {notebookContextMenu.visible && (
+        <div
+          className={styles.contextMenuOverlay}
+          onClick={() => {
+            setContextMenu({ visible: false, x: 0, y: 0 });
+            setNotebookContextMenu({ visible: false, x: 0, y: 0 });
+          }}
+        >
+          <div
+            className={styles.contextMenu}
+            style={{
+              left: notebookContextMenu.x,
+              top: notebookContextMenu.y,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.contextMenuItem}
+              onClick={() => {
+                if (notebookContextMenu.notebookId) {
+                  setRenamingId(notebookContextMenu.notebookId);
+                  setRenameValue(
+                    notebooks.find((n) => n.id === notebookContextMenu.notebookId)
+                      ?.name || ""
+                  );
+                }
+                setContextMenu({ visible: false, x: 0, y: 0 });
+                setNotebookContextMenu({ visible: false, x: 0, y: 0 });
+              }}
+            >
+              Переименовать блокнот
+            </button>
+            <button
+              type="button"
+              className={styles.contextMenuItem}
+              onClick={() => {
+                if (notebookContextMenu.notebookId) {
+                  onDeleteNotebook?.(notebookContextMenu.notebookId);
+                }
+                setContextMenu({ visible: false, x: 0, y: 0 });
+                setNotebookContextMenu({ visible: false, x: 0, y: 0 });
+              }}
+            >
+              Удалить блокнот
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

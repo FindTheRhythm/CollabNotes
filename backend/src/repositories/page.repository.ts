@@ -13,11 +13,11 @@ export class PageRepository {
     return result.rows;
   }
 
-  async create(title: string, sectionId: string, position = 0): Promise<PageModel> {
+  async create(title: string, sectionId: string, position = 0, content?: string): Promise<PageModel> {
     const id = generateId();
     const result = await query(
-      `INSERT INTO pages (id, title, section_id, position, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING *`,
-      [id, title, sectionId, position]
+      `INSERT INTO pages (id, title, section_id, position, content, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *`,
+      [id, title, sectionId, position, content ?? '']
     );
     return result.rows[0];
   }
@@ -33,6 +33,8 @@ export class PageRepository {
     if ((updates as any).section_id !== undefined) { fields.push(`section_id = $${param++}`); values.push((updates as any).section_id); }
 
     if (fields.length === 0) return this.findById(id);
+
+    if ((updates as any).content !== undefined) { fields.push(`content = $${param++}`); values.push((updates as any).content); }
 
     values.push(id);
     const result = await query(`UPDATE pages SET ${fields.join(", ")}, updated_at = NOW() WHERE id = $${param} RETURNING *`, values);

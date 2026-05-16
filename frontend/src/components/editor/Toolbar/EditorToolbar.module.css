@@ -32,6 +32,23 @@
   font-weight: 500;
 }
 
+.saveButton {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  padding: 0;
+}
+
+.saveButton:hover {
+  background-color: var(--color-background-hover);
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .button:hover {
   background-color: var(--color-background-hover);
   color: var(--color-text-primary);

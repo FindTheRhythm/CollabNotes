@@ -1,7 +1,7 @@
 .editor {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 0;
   width: 100%;
   background-color: var(--color-background);
   color: var(--color-text-primary);
@@ -15,9 +15,17 @@
   color: var(--color-text-secondary);
 }
 
+.editorBody {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+}
+
 .editorContent {
   flex: 1;
-  overflow-y: auto;
+  overflow: visible;
   padding: 44px 56px;
   max-width: 900px;
   margin: 0 auto;
@@ -26,6 +34,32 @@
   border-radius: 28px;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
+}
+
+.sideToolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 100px;
+  align-self: flex-start;
+}
+
+.sideButton {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.sideButton:hover {
+  background-color: var(--color-background-hover);
+}
+
+.sideButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Tiptap Editor Styles */

@@ -56,18 +56,25 @@ export const usePageManagement = () => {
 
   const createNewPage = useCallback(
     async (title: string) => {
-      if (!currentSection) return;
+      console.log('[usePageManagement] createNewPage called:', { title, currentSection });
+      if (!currentSection) {
+        console.error('[usePageManagement] createNewPage: currentSection is missing!');
+        return;
+      }
       try {
+        console.log('[usePageManagement] Creating page with:', { sectionId: currentSection.id, title, position: pages.length });
         const newPage = await pageAPI.createPage(currentSection.id, {
           title,
           content: "",
           position: pages.length,
         });
+        console.log('[usePageManagement] Page created successfully:', newPage);
         dispatch(addPage(newPage));
         dispatch(setCurrentPage(newPage));
         return newPage;
       } catch (error) {
         console.error("Failed to create page:", error);
+        throw error;
       }
     },
     [currentSection, pages.length, dispatch]

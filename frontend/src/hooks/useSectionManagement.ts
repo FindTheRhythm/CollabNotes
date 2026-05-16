@@ -20,9 +20,14 @@ export const useSectionManagement = () => {
   );
 
   const loadSections = useCallback(async () => {
-    if (!currentNotebook) return;
+    if (!currentNotebook) {
+      console.log('[useSectionManagement] loadSections called but currentNotebook is missing');
+      return;
+    }
+    console.log('[useSectionManagement] loadSections called for notebook:', { notebookId: currentNotebook.id });
     try {
       const data = await sectionAPI.getSections(currentNotebook.id);
+      console.log('[useSectionManagement] loadSections received data:', { sectionsCount: data.length, sections: data });
       dispatch(setSections(data));
     } catch (error) {
       console.error("Failed to load sections:", error);
@@ -31,8 +36,10 @@ export const useSectionManagement = () => {
 
   const selectSection = useCallback(
     async (sectionId: string) => {
+      console.log('[useSectionManagement] selectSection called:', { sectionId });
       try {
         const section = await sectionAPI.getSection(sectionId);
+        console.log('[useSectionManagement] selectSection received section:', { section });
         dispatch(setCurrentSection(section));
       } catch (error) {
         console.error("Failed to load section:", error);
@@ -43,8 +50,13 @@ export const useSectionManagement = () => {
 
   const createSection = useCallback(
     async (name: string) => {
-      if (!currentNotebook) return;
+      console.log('[useSectionManagement] createSection called:', { name, currentNotebookId: currentNotebook?.id });
+      if (!currentNotebook) {
+        console.error('[useSectionManagement] createSection: currentNotebook is missing');
+        return;
+      }
       try {
+        console.log('[useSectionManagement] Creating section via API...');
         const newSection = await sectionAPI.createSection(
           currentNotebook.id,
           {
@@ -52,6 +64,7 @@ export const useSectionManagement = () => {
             position: sections.length,
           }
         );
+        console.log('[useSectionManagement] createSection response:', { newSection });
         dispatch(addSection(newSection));
         dispatch(setCurrentSection(newSection));
         return newSection;

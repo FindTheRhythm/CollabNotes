@@ -4,9 +4,11 @@ import styles from "./EditorToolbar.module.css";
 
 interface EditorToolbarProps {
   editor: Editor;
+  onSave?: () => void;
+  isSaving?: boolean;
 }
 
-export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
+export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onSave, isSaving }) => {
   const toggleBold = () => {
     editor.chain().focus().toggleBold().run();
   };
@@ -315,6 +317,22 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
               strokeWidth="2"
               fill="none"
             />
+          </svg>
+        </button>
+      </div>
+
+      <div className={styles.toolbarGroup}>
+        <button
+          className={`${styles.button} ${styles.saveButton}`}
+          onClick={onSave}
+          title="Сохранить страницу"
+          aria-label="Сохранить страницу"
+          disabled={isSaving}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
           </svg>
         </button>
       </div>

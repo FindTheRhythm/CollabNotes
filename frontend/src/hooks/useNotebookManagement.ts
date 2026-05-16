@@ -9,6 +9,7 @@ import {
   deleteNotebook,
 } from "@/store/notebookSlice";
 import { notebookAPI } from "@/api/notebookAPI";
+import { workspaceAPI } from "@/api/workspaceAPI";
 
 export const useNotebookManagement = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,16 +47,35 @@ export const useNotebookManagement = () => {
 
   const createNotebook = useCallback(
     async (name: string, description?: string) => {
-      if (!currentWorkspace) return;
+      let workspaceId = currentWorkspace?.id;
+      if (!workspaceId) {
+        console.warn('[useNotebookManagement] currentWorkspace is empty, fetching workspaces as fallback');
+        try {
+          // force fresh fetch to avoid 304 Not Modified cached responses
+          const w = await workspaceAPI.getWorkspaces(true);
+          if (w && w.length > 0) {
+            workspaceId = w[0].id;
+            console.log('[useNotebookManagement] fallback workspaceId', workspaceId);
+          } else {
+            console.error('[useNotebookManagement] no workspaces available to create notebook');
+            return;
+          }
+        } catch (err) {
+          console.error('[useNotebookManagement] failed to fetch workspaces fallback', err);
+          return;
+        }
+      }
       try {
+        console.log('[useNotebookManagement] creating notebook', { workspaceId, name });
         const newNotebook = await notebookAPI.createNotebook(
-          currentWorkspace.id,
+          workspaceId,
           {
             name,
             description,
             color: "#007AFF",
           }
         );
+        console.log('[useNotebookManagement] createNotebook response', newNotebook);
         dispatch(addNotebook(newNotebook));
         dispatch(setCurrentNotebook(newNotebook));
         return newNotebook;

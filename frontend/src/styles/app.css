@@ -164,7 +164,7 @@ body {
   background-color: var(--color-background);
   transition: background-color var(--transition-base),
     color var(--transition-base);
-  overflow: hidden;
+  overflow: auto;
 }
 
 /* ==================== Typography ==================== */

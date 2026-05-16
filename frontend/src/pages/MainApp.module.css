@@ -1,7 +1,7 @@
 .mainApp {
   display: flex;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   background-color: var(--color-background);
   color: var(--color-text-primary);
   transition: background-color var(--transition-base),

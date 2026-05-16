@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -19,7 +19,7 @@ import styles from "./PageEditor.module.css";
 interface PageEditorProps {
   page: Page;
   onContentChange?: (content: string) => void;
-  onSave?: (content: string) => void;
+  onSave?: (pageId: string, content: string) => Promise<void> | void;
   readOnly?: boolean;
 }
 
@@ -30,10 +30,66 @@ export const PageEditor: React.FC<PageEditorProps> = ({
   readOnly = false,
 }) => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showSideToolbar, setShowSideToolbar] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
   const { handleContentChange } = useAutoSave(page.id, {
     debounceMs: 1000,
     onSave,
   });
+
+  const updateSideToolbar = useCallback(() => {
+    const contentEl = contentRef.current;
+    if (!contentEl) {
+      setShowSideToolbar(false);
+      return;
+    }
+
+    const contentHeight = contentEl.getBoundingClientRect().height;
+    const availableHeight = window.innerHeight - 180;
+    const isLong = contentHeight > availableHeight;
+    setShowSideToolbar(isLong && window.scrollY > 120);
+  }, []);
+
+  const handleManualSave = async () => {
+    if (!onSave || !editor) return;
+
+    const content = editor.getHTML();
+    setIsSaving(true);
+
+    try {
+      await Promise.resolve(onSave(page.id, content));
+    } catch (error) {
+      console.error("Failed to save page manually:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    updateSideToolbar();
+
+    const handleScroll = () => {
+      const contentEl = contentRef.current;
+      if (!contentEl) {
+        setShowSideToolbar(false);
+        return;
+      }
+
+      const contentHeight = contentEl.getBoundingClientRect().height;
+      const availableHeight = window.innerHeight - 180;
+      const isLong = contentHeight > availableHeight;
+      setShowSideToolbar(isLong && window.scrollY > 120);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", updateSideToolbar);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", updateSideToolbar);
+    };
+  }, [updateSideToolbar]);
 
   const editor = useEditor({
     extensions: [
@@ -66,6 +122,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({
       const html = editor.getHTML();
       onContentChange?.(html);
       handleContentChange(html);
+      updateSideToolbar();
     },
   });
 
@@ -73,7 +130,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({
     if (editor && page.content && editor.getHTML() !== page.content) {
       editor.commands.setContent(page.content);
     }
-  }, [editor, page.content]);
+
+    updateSideToolbar();
+  }, [editor, page.content, updateSideToolbar]);
 
   const handleSlashCommand = (command: string) => {
     if (!editor) return;
@@ -119,7 +178,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({
 
   return (
     <div className={styles.editor}>
-      <EditorToolbar editor={editor} />
+      <EditorToolbar editor={editor} onSave={handleManualSave} isSaving={isSaving} />
 
       {showCommandPalette && (
         <CommandPalette
@@ -128,8 +187,28 @@ export const PageEditor: React.FC<PageEditorProps> = ({
         />
       )}
 
-      <div className={styles.editorContent}>
-        <EditorContent editor={editor} />
+      <div className={styles.editorBody}>
+        <div className={styles.editorContent} ref={contentRef}>
+          <EditorContent editor={editor} />
+        </div>
+
+        {showSideToolbar && (
+          <aside className={styles.sideToolbar}>
+            <button
+              className={`${styles.button} ${styles.sideButton}`}
+              title="Сохранить страницу"
+              aria-label="Сохранить страницу"
+              onClick={handleManualSave}
+              disabled={isSaving}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+            </button>
+          </aside>
+        )}
       </div>
     </div>
   );

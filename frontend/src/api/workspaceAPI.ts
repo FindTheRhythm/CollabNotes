@@ -1,29 +1,14 @@
-import axios from "axios";
+import api from "@/api/client";
 import { Workspace } from "@/store/workspaceSlice";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-});
-
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 export const workspaceAPI = {
-  getWorkspaces: async (): Promise<Workspace[]> => {
-    const response = await api.get("/workspaces");
+  getWorkspaces: async (force = false): Promise<Workspace[]> => {
+    const config: any = {};
+    if (force) {
+      config.params = { _t: Date.now() };
+      config.headers = { "Cache-Control": "no-cache" };
+    }
+    const response = await api.get("/workspaces", config);
     return response.data.data;
   },
 
@@ -76,4 +61,4 @@ export const workspaceAPI = {
   },
 };
 
-export default api;
+export default workspaceAPI;
