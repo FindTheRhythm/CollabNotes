@@ -6,7 +6,14 @@ export enum UserRole {
 
 export enum AccessPermission {
   READ = "READ",
-  EDIT = "EDIT"
+  WRITE = "WRITE",
+  ADMIN = "ADMIN"
+}
+
+export enum AccessResourceType {
+  NOTE = "NOTE",
+  WORKSPACE = "WORKSPACE",
+  NOTEBOOK = "NOTEBOOK"
 }
 
 export enum ErrorCode {

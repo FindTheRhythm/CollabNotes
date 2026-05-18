@@ -101,6 +101,18 @@ export const useSectionManagement = () => {
     [dispatch]
   );
 
+  const reorderSections = useCallback(
+    async (orderedIds: string[]) => {
+      try {
+        const updated = await sectionAPI.reorderSections(orderedIds);
+        dispatch(setSections(updated));
+      } catch (error) {
+        console.error('Failed to reorder sections', error);
+      }
+    },
+    [dispatch]
+  );
+
   return {
     sections,
     currentSection,
@@ -109,5 +121,6 @@ export const useSectionManagement = () => {
     createSection,
     renameSection,
     removeSection,
+    reorderSections,
   };
 };

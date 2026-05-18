@@ -112,6 +112,18 @@ export const useNotebookManagement = () => {
     [dispatch]
   );
 
+  const reorderNotebooks = useCallback(
+    async (orderedIds: string[]) => {
+      try {
+        const updated = await notebookAPI.reorderNotebooks(orderedIds);
+        dispatch(setNotebooks(updated));
+      } catch (error) {
+        console.error('Failed to reorder notebooks', error);
+      }
+    },
+    [dispatch]
+  );
+
   return {
     notebooks,
     currentNotebook,
@@ -120,5 +132,6 @@ export const useNotebookManagement = () => {
     createNotebook,
     renameNotebook,
     removeNotebook,
+    reorderNotebooks,
   };
 };

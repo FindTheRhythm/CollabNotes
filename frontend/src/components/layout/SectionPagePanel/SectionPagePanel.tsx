@@ -1,49 +1,35 @@
 import React, { useState } from "react";
-import { Section } from "@/store/sectionSlice";
 import { Page } from "@/store/pageSlice";
 import styles from "./SectionPagePanel.module.css";
 
 interface SectionPagePanelProps {
-  sections: Section[];
   pages: Page[];
-  currentSection?: Section;
   currentPage?: Page;
-  onSelectSection?: (section: Section) => void;
   onSelectPage?: (page: Page) => void;
-  onCreateSection?: (name: string) => void;
   onCreatePage?: (title: string) => void;
   onToggleFavorite?: (pageId: string) => void;
+  onReorderPages?: (pageId: string, targetIndex: number) => void;
+  className?: string;
+  width?: number;
+  onResizeStart?: (e: React.MouseEvent) => void;
 }
 
 export const SectionPagePanel: React.FC<SectionPagePanelProps> = ({
-  sections,
   pages,
-  currentSection,
   currentPage,
-  onSelectSection,
   onSelectPage,
-  onCreateSection,
   onCreatePage,
   onToggleFavorite,
+  onReorderPages,
+  className,
+  width = 224,
+  onResizeStart,
 }) => {
-  const [isCreatingSection, setIsCreatingSection] = useState(false);
-  const [newSectionName, setNewSectionName] = useState("");
   const [isCreatingPage, setIsCreatingPage] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState("");
   const [renamingPageId, setRenamingPageId] = useState<string | null>(null);
   const [renamePageValue, setRenamePageValue] = useState("");
   const [pageContextMenu, setPageContextMenu] = useState({ visible: false, x: 0, y: 0 });
-
-  const handleCreateSection = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('[SectionPagePanel] handleCreateSection called:', { newSectionName });
-    if (newSectionName.trim()) {
-      console.log('[SectionPagePanel] Calling onCreateSection with:', newSectionName);
-      onCreateSection?.(newSectionName);
-      setNewSectionName("");
-      setIsCreatingSection(false);
-    }
-  };
 
   const handleCreatePage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,61 +49,28 @@ export const SectionPagePanel: React.FC<SectionPagePanelProps> = ({
   };
 
   return (
-    <div className={styles.panel}>
-      {/* Section Tabs */}
-      <div className={styles.sectionsTabs}>
-        <div className={styles.tabsScroll}>
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              className={`${styles.tab} ${
-                currentSection?.id === section.id ? styles.activeTab : ""
-              }`}
-              onClick={() => onSelectSection?.(section)}
-            >
-              {section.color && (
-                <span
-                  className={styles.sectionColor}
-                  style={{ backgroundColor: section.color }}
-                />
-              )}
-              <span className={styles.tabLabel}>{section.name}</span>
-            </button>
-          ))}
-        </div>
-        <button
-          className={styles.addSectionButton}
-          onClick={() => setIsCreatingSection(true)}
-          title="Добавить секцию"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" fill="none" />
-          </svg>
-        </button>
-      </div>
+    <div className={`${styles.panel} ${className || ""}`} style={{ width: `${width}px` }}>
+      {/* Resize handle */}
+      <div
+        style={{
+          position: 'absolute',
+          right: -4,
+          top: 0,
+          width: 8,
+          height: '100%',
+          cursor: 'col-resize',
+          backgroundColor: 'transparent',
+        }}
+        onMouseDown={onResizeStart}
+      />
 
-      {isCreatingSection && (
-        <form className={styles.createSectionForm} onSubmit={handleCreateSection}>
-          <input
-            type="text"
-            className={styles.createInput}
-            placeholder="Название секции"
-            value={newSectionName}
-            onChange={(e) => setNewSectionName(e.target.value)}
-            autoFocus
-            onBlur={() => !newSectionName && setIsCreatingSection(false)}
-          />
-        </form>
-      )}
+      {/* Pages Header */}
+      <div className={styles.header}>
+        <h2 className={styles.title}>Страницы</h2>
+      </div>
 
       {/* Pages List */}
       <div className={styles.pagesContainer}>
-        <div className={styles.pagesHeader}>
-          <h3 className={styles.pagesTitle} onContextMenu={(e) => e.stopPropagation()}>
-            Страницы
-          </h3>
-        </div>
-
         {isCreatingPage && (
           <form className={styles.createPageForm} onSubmit={handleCreatePage}>
             <input
@@ -140,13 +93,39 @@ export const SectionPagePanel: React.FC<SectionPagePanelProps> = ({
             setPageContextMenu({ visible: true, x: e.clientX, y: e.clientY });
           }}
         >
-          {pages.map((page) => (
+          {pages.map((page, pidx) => (
             <div
               key={page.id}
+              data-index={pidx}
+              draggable
               className={`${styles.pageItem} ${
                 currentPage?.id === page.id ? styles.activePage : ""
               }`}
               onClick={() => onSelectPage?.(page)}
+              onDragStart={(e) => {
+                e.dataTransfer.setData(
+                  "application/collabnotes",
+                  JSON.stringify({ type: "page", id: page.id })
+                );
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const raw = e.dataTransfer.getData("application/collabnotes");
+                if (!raw) return;
+                try {
+                  const data = JSON.parse(raw);
+                  if (data.type !== "page") return;
+                  const ids = pages.map((p) => p.id);
+                  const from = ids.indexOf(data.id);
+                  const to = Number((e.currentTarget as HTMLElement).dataset.index);
+                  if (from === -1 || to === -1 || from === to) return;
+                  // inform parent of move: source id and target index
+                  onReorderPages?.(data.id, to);
+                } catch (err) {
+                  console.error('Page drop parse error', err);
+                }
+              }}
             >
               {renamingPageId === page.id ? (
                 <input

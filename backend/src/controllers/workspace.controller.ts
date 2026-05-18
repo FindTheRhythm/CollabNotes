@@ -10,7 +10,11 @@ export class WorkspaceController {
   });
 
   getWorkspace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const workspace = await workspaceService.getWorkspace(req.params.workspaceId);
+    const workspace = await workspaceService.getWorkspace(
+      req.params.workspaceId,
+      req.user!.userId,
+      req.user!.role
+    );
     res.status(200).json(createSuccessResponse(workspace, "Workspace retrieved successfully", 200));
   });
 

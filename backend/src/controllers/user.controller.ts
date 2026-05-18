@@ -28,6 +28,16 @@ export class UserController {
     );
   });
 
+  search = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const queryText = String(req.query.query || "");
+    const limit = Number(req.query.limit) || 10;
+    const result = await userService.searchUsers(queryText, limit);
+
+    res.status(200).json(
+      createSuccessResponse(result, "Users retrieved successfully", 200)
+    );
+  });
+
   update = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     if (req.user!.role !== UserRole.ADMIN && req.user!.userId !== req.params.id) {
       throw new ForbiddenError("You don't have permission to update this user");

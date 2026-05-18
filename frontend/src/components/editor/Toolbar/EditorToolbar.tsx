@@ -61,6 +61,19 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onSave, is
     editor.chain().focus().toggleHeading({ level }).run();
   };
 
+  const setTextAlign = (align: "left" | "center" | "right" | "justify") => {
+    try {
+      // use any to avoid TypeScript error when extension is not present
+      (editor as any).chain().focus().setTextAlign(align).run();
+    } catch {
+      console.log("Text align not available");
+    }
+  };
+
+  const insertParagraph = () => {
+    editor.chain().focus().setParagraph().run();
+  };
+
   const insertImage = () => {
     const url = prompt("Введите URL изображения:");
     if (url) {
@@ -284,6 +297,67 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onSave, is
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </button>
+      </div>
+
+      <div className={styles.divider} />
+
+      <div className={styles.toolbarGroup}>
+        <button
+          className={`${styles.button} ${
+            editor.isActive({ textAlign: "left" }) ? styles.active : ""
+          }`}
+          onClick={() => setTextAlign("left")}
+          title="Выравнять влево"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2" />
+            <line x1="3" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="2" />
+            <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </button>
+        <button
+          className={`${styles.button} ${
+            editor.isActive({ textAlign: "center" }) ? styles.active : ""
+          }`}
+          onClick={() => setTextAlign("center")}
+          title="Выравнять по центру"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2" />
+            <line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="2" />
+            <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </button>
+        <button
+          className={`${styles.button} ${
+            editor.isActive({ textAlign: "right" }) ? styles.active : ""
+          }`}
+          onClick={() => setTextAlign("right")}
+          title="Выравнять вправо"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2" />
+            <line x1="7" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="2" />
+            <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </button>
+        <button
+          className={styles.button}
+          onClick={insertParagraph}
+          title="Параграф"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M5 3h7a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+              stroke="currentColor"
+              strokeWidth="2"
+              fill="none"
+            />
+            <line x1="7" y1="8" x2="17" y2="8" stroke="currentColor" strokeWidth="1" />
+            <line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="1" />
+            <line x1="7" y1="16" x2="17" y2="16" stroke="currentColor" strokeWidth="1" />
           </svg>
         </button>
       </div>

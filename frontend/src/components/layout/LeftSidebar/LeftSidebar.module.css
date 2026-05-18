@@ -3,9 +3,9 @@
   flex-direction: column;
   width: 72px;
   min-width: 72px;
-  height: 100%;
   background-color: var(--color-surface-strong);
   border-right: 1px solid var(--color-border);
+  border-radius: 24px 0 0 24px;
   padding: 10px 0;
   overflow-y: auto;
   transition: width var(--transition-fast), background-color var(--transition-fast);
@@ -36,6 +36,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  align-self: center;
 }
 
 .sidebarItem:hover {
@@ -70,24 +71,4 @@
   color: white;
   font-size: 12px;
   font-weight: bold;
-}
-
-.collapseButton {
-  width: 44px;
-  height: 44px;
-  margin: 8px auto 0;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.collapseButton:hover {
-  background-color: var(--color-background-hover);
-  color: var(--color-text-primary);
 }

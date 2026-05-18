@@ -6,18 +6,38 @@ import {
   WorkspaceResponseDTO,
 } from "../dto/workspace.dto.js";
 import { WorkspaceModel } from "../models/workspace.model.js";
+import { accessService } from "../services/access.service.js";
+import { AccessPermission, AccessResourceType, UserRole } from "../types/index.js";
 
 export class WorkspaceService {
-  async getWorkspaces(ownerId: string): Promise<WorkspaceResponseDTO[]> {
-    const workspaces = await workspaceRepository.findByOwnerId(ownerId);
+  async getWorkspaces(userId: string): Promise<WorkspaceResponseDTO[]> {
+    const workspaces = await workspaceRepository.findAccessibleByUserId(userId);
     return workspaces.map((workspace) => this.mapWorkspaceToDTO(workspace));
   }
 
-  async getWorkspace(workspaceId: string): Promise<WorkspaceResponseDTO> {
+  async getWorkspace(workspaceId: string, userId: string, userRole: UserRole): Promise<WorkspaceResponseDTO> {
     const workspace = await workspaceRepository.findById(workspaceId);
     if (!workspace) {
       throw new NotFoundError("Workspace not found");
     }
+
+    const isOwner = workspace.owner_id === userId;
+    const canReadWorkspace = isOwner || userRole === UserRole.ADMIN || await accessService.canAccess(
+      AccessResourceType.WORKSPACE,
+      workspaceId,
+      userId,
+      AccessPermission.READ,
+      userRole
+    );
+
+    if (!canReadWorkspace) {
+      const accessibleWorkspaces = await workspaceRepository.findAccessibleByUserId(userId);
+      const hasWorkspace = accessibleWorkspaces.some(w => w.id === workspaceId);
+      if (!hasWorkspace) {
+        throw new ForbiddenError("You do not have permission to view this workspace");
+      }
+    }
+
     return this.mapWorkspaceToDTO(workspace);
   }
 

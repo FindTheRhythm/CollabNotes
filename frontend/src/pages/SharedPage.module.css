@@ -1,0 +1,38 @@
+.container {
+  display: flex;
+  height: 100%;
+}
+.leftColumn {
+  width: 360px;
+  border-right: 1px solid var(--color-border, #e6e6e6);
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+.rightColumn {
+  flex: 1;
+  padding: 18px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+.sharedList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sharedItem {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border, #e6e6e6);
+  border-radius: 8px;
+  background: var(--color-surface, #fff);
+}
+.sharedTitle { font-weight: 600; }
+.sharedMeta { font-size: 12px; color: var(--color-text-secondary, #6b7280); }
+.empty { color: var(--color-text-secondary, #6b7280); padding: 24px; }
+.modalOverlay {
+  position: fixed; left: 0; top: 0; right: 0; bottom: 0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.35);
+}
+.modal {
+  background: white; padding: 18px; border-radius: 8px; width: 420px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.modalActions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }

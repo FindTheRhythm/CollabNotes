@@ -4,7 +4,7 @@ import { accessRepository } from "../repositories/access.repository.js";
 import { NotFoundError, ForbiddenError } from "../utils/errors.js";
 import { CommentResponseDTO } from "../dto/comment.dto.js";
 import { IComment } from "../types/models.js";
-import { UserRole } from "../types/index.js";
+import { UserRole, AccessResourceType } from "../types/index.js";
 
 export class CommentService {
   async getNoteComments(noteId: string, currentUserId: string, currentUserRole: UserRole): Promise<CommentResponseDTO[]> {
@@ -14,7 +14,7 @@ export class CommentService {
     }
 
     if (currentUserRole !== UserRole.ADMIN && note.owner_id !== currentUserId) {
-      const access = await accessRepository.findByNoteAndUser(noteId, currentUserId);
+      const access = await accessRepository.findByResourceAndUser(AccessResourceType.NOTE, noteId, currentUserId);
       if (!access) {
         throw new ForbiddenError("You don't have permission to view comments for this note");
       }
@@ -31,7 +31,7 @@ export class CommentService {
     }
 
     if (note.owner_id !== userId && userRole !== UserRole.ADMIN) {
-      const access = await accessRepository.findByNoteAndUser(noteId, userId);
+      const access = await accessRepository.findByResourceAndUser(AccessResourceType.NOTE, noteId, userId);
       if (!access) {
         throw new ForbiddenError("You don't have permission to comment on this note");
       }

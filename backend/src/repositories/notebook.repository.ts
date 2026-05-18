@@ -13,6 +13,17 @@ export class NotebookRepository {
     return result.rows;
   }
 
+  async findAccessibleByWorkspaceAndUser(workspaceId: string, userId: string): Promise<NotebookModel[]> {
+    const result = await query(
+      `SELECT DISTINCT n.* FROM notebooks n
+       LEFT JOIN resource_access ra ON ra.resource_type = 'NOTEBOOK' AND ra.resource_id = n.id AND ra.user_id = $1
+       WHERE n.workspace_id = $2 AND (n.owner_id = $1 OR ra.user_id = $1)
+       ORDER BY n.position ASC`,
+      [userId, workspaceId]
+    );
+    return result.rows;
+  }
+
   async create(title: string, workspaceId: string, ownerId: string, color?: string | null, icon?: string | null, position = 0): Promise<NotebookModel> {
     const id = generateId();
     const result = await query(

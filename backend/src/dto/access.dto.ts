@@ -1,7 +1,8 @@
-import { AccessPermission } from "../types/index.js";
+import { AccessPermission, AccessResourceType } from "../types/index.js";
 
 export class ShareAccessDTO {
-  noteId!: string;
+  resourceType!: AccessResourceType;
+  resourceId!: string;
   userId!: string;
   permission!: AccessPermission;
 }
@@ -12,7 +13,8 @@ export class UpdateAccessDTO {
 
 export class AccessResponseDTO {
   id!: string;
-  noteId!: string;
+  resourceType!: AccessResourceType;
+  resourceId!: string;
   userId!: string;
   permission!: AccessPermission;
   createdAt!: Date;

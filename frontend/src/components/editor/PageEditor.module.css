@@ -21,28 +21,44 @@
   justify-content: center;
   gap: 20px;
   width: 100%;
+  position: relative;
+  margin: 0;
+  padding: 0; /* padding moved to wrapper */
+  box-sizing: border-box;
+}
+
+.editorWrapper {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 0 20px; /* horizontal padding for toolbar and page */
 }
 
 .editorContent {
   flex: 1;
   overflow: visible;
   padding: 44px 56px;
-  max-width: 900px;
-  margin: 0 auto;
   width: 100%;
   background-color: var(--color-surface-soft);
-  border-radius: 28px;
+  border-radius: 0 0 28px 28px;
   border: 1px solid var(--color-border);
+  border-top: none;
   box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 30; /* ensure editor sits above side panels */
 }
 
 .sideToolbar {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  position: sticky;
-  top: 100px;
-  align-self: flex-start;
+  position: absolute; /* attach to page container */
+  top: 24px;
+  right: 24px; /* small offset from page's right edge */
+  z-index: 40;
+  background: transparent;
+  pointer-events: auto;
 }
 
 .sideButton {
@@ -51,15 +67,26 @@
   border-radius: 12px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sideButton:hover {
   background-color: var(--color-background-hover);
+  border-color: var(--color-border-hover, var(--color-border));
 }
 
 .sideButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.sideButton:active {
+  transform: scale(0.95);
 }
 
 /* Tiptap Editor Styles */

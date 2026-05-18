@@ -2,11 +2,18 @@ import { Request, Response } from "express";
 import { accessService } from "../services/access.service.js";
 import { createSuccessResponse } from "../utils/errors.js";
 import { asyncHandler } from "../middlewares/async.middleware.js";
+import { AccessResourceType } from "../types/index.js";
 
 export class AccessController {
   share = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const { noteId, userId, permission } = req.body;
-    const access = await accessService.shareNote(noteId, userId, permission, req.user!.userId);
+    const { resourceType, resourceId, userId, permission } = req.body;
+    const access = await accessService.shareResource(
+      resourceType,
+      resourceId,
+      userId,
+      permission,
+      req.user!.userId
+    );
 
     res.status(201).json(
       createSuccessResponse(access, "Access granted successfully", 201)
@@ -14,7 +21,12 @@ export class AccessController {
   });
 
   getAccessList = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const accessList = await accessService.getNoteAccess(req.params.noteId, req.user!.userId);
+    const { resourceType, resourceId } = req.params as {
+      resourceType: AccessResourceType;
+      resourceId: string;
+    };
+
+    const accessList = await accessService.getResourceAccess(resourceType, resourceId, req.user!.userId);
 
     res.status(200).json(
       createSuccessResponse(accessList, "Access list retrieved successfully", 200)

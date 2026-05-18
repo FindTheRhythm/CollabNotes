@@ -1,14 +1,36 @@
 import { Request, Response } from "express";
 import { NotFoundError, ForbiddenError, ValidationError, createSuccessResponse } from "../utils/errors.js";
 import { notebookRepository } from "../repositories/notebook.repository.js";
+import { workspaceRepository } from "../repositories/workspace.repository.js";
 import { sectionRepository } from "../repositories/section.repository.js";
+import { accessService } from "../services/access.service.js";
+import { AccessPermission, AccessResourceType } from "../types/index.js";
 
 class NotebookController {
   getNotebooks = async (req: Request, res: Response): Promise<void> => {
     const workspaceId = req.query.workspaceId as string;
     if (!workspaceId) throw new ValidationError({ workspaceId: ["workspaceId is required"] });
-    const notebooks = await notebookRepository.findByWorkspaceId(workspaceId);
-    // map DB fields to API shape expected by frontend
+
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    if (!userId) throw new ForbiddenError("Authentication required");
+
+    const workspace = await workspaceRepository.findById(workspaceId);
+    if (!workspace) throw new NotFoundError("Workspace not found");
+
+    const isOwner = workspace.owner_id === userId;
+    const canViewWorkspace = isOwner || userRole === 'ADMIN' || await accessService.canAccess(
+      AccessResourceType.WORKSPACE,
+      workspaceId,
+      userId,
+      AccessPermission.READ,
+      userRole
+    );
+
+    const notebooks = canViewWorkspace
+      ? await notebookRepository.findByWorkspaceId(workspaceId)
+      : await notebookRepository.findAccessibleByWorkspaceAndUser(workspaceId, userId);
+
     const mapped = notebooks.map(n => ({
       id: n.id,
       workspaceId: n.workspace_id,
@@ -28,6 +50,21 @@ class NotebookController {
   getNotebook = async (req: Request, res: Response): Promise<void> => {
     const notebook = await notebookRepository.findById(req.params.notebookId);
     if (!notebook) throw new NotFoundError("Notebook not found");
+
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    const isOwner = notebook.owner_id === userId;
+    const canView = isOwner || userRole === 'ADMIN' || await accessService.canAccess(
+      AccessResourceType.NOTEBOOK,
+      notebook.id,
+      userId,
+      AccessPermission.READ,
+      userRole
+    );
+    if (!canView) {
+      throw new ForbiddenError("You do not have permission to view this notebook");
+    }
+
     const mapped = {
       id: notebook.id,
       workspaceId: notebook.workspace_id,
@@ -46,9 +83,26 @@ class NotebookController {
 
   createNotebook = async (req: Request, res: Response): Promise<void> => {
     const userId = req.user?.userId;
+    const userRole = req.user?.role;
     const { workspaceId, name, description, color, icon } = req.body;
     if (!userId) throw new ForbiddenError("Authentication required");
     if (!workspaceId || !name) throw new ValidationError({ create: ["workspaceId and name are required"] });
+
+    const workspace = await workspaceRepository.findById(workspaceId);
+    if (!workspace) throw new NotFoundError("Workspace not found");
+
+    const isOwner = workspace.owner_id === userId;
+    const canEdit = isOwner || userRole === 'ADMIN' || await accessService.canAccess(
+      AccessResourceType.WORKSPACE,
+      workspaceId,
+      userId,
+      AccessPermission.WRITE,
+      userRole
+    );
+    if (!canEdit) {
+      throw new ForbiddenError("You do not have permission to create notebooks in this workspace");
+    }
+
     const nb = await notebookRepository.create(name, workspaceId, userId, color || null, icon || null);
     
     // Create default section for new notebook
@@ -56,7 +110,6 @@ class NotebookController {
       await sectionRepository.create("Основное", nb.id, 0);
     } catch (error) {
       console.warn("[NOTEBOOK CONTROLLER] Failed to create default section:", error);
-      // Don't fail the notebook creation if section creation fails
     }
     
     const mapped = {
@@ -78,7 +131,19 @@ class NotebookController {
   updateNotebook = async (req: Request, res: Response): Promise<void> => {
     const notebook = await notebookRepository.findById(req.params.notebookId);
     if (!notebook) throw new NotFoundError("Notebook not found");
-    if (notebook.owner_id !== req.user?.userId) throw new ForbiddenError("No permission");
+
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    const isOwner = notebook.owner_id === userId;
+    const canAdmin = isOwner || userRole === 'ADMIN' || await accessService.canAccess(
+      AccessResourceType.NOTEBOOK,
+      notebook.id,
+      userId,
+      AccessPermission.ADMIN,
+      userRole
+    );
+    if (!canAdmin) throw new ForbiddenError("No permission");
+
     const updates: any = {};
     if (req.body.name) updates.title = req.body.name;
     if (req.body.color) updates.color = req.body.color;
@@ -105,12 +170,26 @@ class NotebookController {
   deleteNotebook = async (req: Request, res: Response): Promise<void> => {
     const notebook = await notebookRepository.findById(req.params.notebookId);
     if (!notebook) throw new NotFoundError("Notebook not found");
-    if (notebook.owner_id !== req.user?.userId) throw new ForbiddenError("No permission");
+
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    const isOwner = notebook.owner_id === userId;
+    const canAdmin = isOwner || userRole === 'ADMIN' || await accessService.canAccess(
+      AccessResourceType.NOTEBOOK,
+      notebook.id,
+      userId,
+      AccessPermission.ADMIN,
+      userRole
+    );
+    if (!canAdmin) throw new ForbiddenError("No permission");
+
     await notebookRepository.delete(req.params.notebookId);
     res.status(200).json(createSuccessResponse(null, "Notebook deleted", 200));
   };
+
   async reorderNotebooks(req: Request, res: Response): Promise<void> {
     const userId = req.user?.userId;
+    const userRole = req.user?.role;
     const { workspaceId, orderedIds } = req.body;
 
     if (!userId) {
@@ -121,17 +200,25 @@ class NotebookController {
       throw new ValidationError({ reorder: ["workspaceId and orderedIds are required"] });
     }
 
-    const notebooks = await notebookRepository.findByWorkspaceId(workspaceId);
-
-    if (notebooks.length === 0) {
-      throw new NotFoundError("Workspace or notebooks not found");
+    const workspace = await workspaceRepository.findById(workspaceId);
+    if (!workspace) {
+      throw new NotFoundError("Workspace not found");
     }
 
-    const ownerId = notebooks[0].owner_id;
-    if (ownerId !== userId) {
+    const isOwner = workspace.owner_id === userId;
+    const canEdit = isOwner || userRole === 'ADMIN' || await accessService.canAccess(
+      AccessResourceType.WORKSPACE,
+      workspaceId,
+      userId,
+      AccessPermission.WRITE,
+      userRole
+    );
+
+    if (!canEdit) {
       throw new ForbiddenError("You do not have permission to reorder notebooks in this workspace");
     }
 
+    const notebooks = await notebookRepository.findByWorkspaceId(workspaceId);
     const validIds = new Set(notebooks.map(n => n.id));
     const updates = orderedIds
       .filter(id => validIds.has(id))
@@ -144,6 +231,7 @@ class NotebookController {
 
   async reorderSections(req: Request, res: Response): Promise<void> {
     const userId = req.user?.userId;
+    const userRole = req.user?.role;
     const { notebookId, orderedIds } = req.body;
 
     if (!userId) {
@@ -159,7 +247,16 @@ class NotebookController {
       throw new NotFoundError("Notebook not found");
     }
 
-    if (notebook.owner_id !== userId) {
+    const isOwner = notebook.owner_id === userId;
+    const canEdit = isOwner || userRole === 'ADMIN' || await accessService.canAccess(
+      AccessResourceType.NOTEBOOK,
+      notebook.id,
+      userId,
+      AccessPermission.WRITE,
+      userRole
+    );
+
+    if (!canEdit) {
       throw new ForbiddenError("You do not have permission to reorder sections in this notebook");
     }
 

@@ -13,6 +13,19 @@ export class WorkspaceRepository {
     return result.rows;
   }
 
+  async findAccessibleByUserId(userId: string): Promise<WorkspaceModel[]> {
+    const result = await query(
+      `SELECT DISTINCT w.* FROM workspaces w
+       LEFT JOIN resource_access ra ON ra.resource_type = 'WORKSPACE' AND ra.resource_id = w.id AND ra.user_id = $1
+       LEFT JOIN notebooks n ON n.workspace_id = w.id
+       LEFT JOIN resource_access rn ON rn.resource_type = 'NOTEBOOK' AND rn.resource_id = n.id AND rn.user_id = $1
+       WHERE w.owner_id = $1 OR ra.user_id = $1 OR rn.user_id = $1
+       ORDER BY w.created_at DESC`,
+      [userId]
+    );
+    return result.rows;
+  }
+
   async create(name: string, ownerId: string): Promise<WorkspaceModel> {
     const id = generateId();
     const result = await query(

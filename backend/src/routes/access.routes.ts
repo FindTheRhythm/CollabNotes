@@ -2,7 +2,7 @@ import { Router } from "express";
 import { accessController } from "../controllers/access.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validationMiddleware } from "../middlewares/validation.middleware.js";
-import { shareAccessValidation, updateAccessValidation, accessIdValidation, noteIdAccessValidation } from "../validators/access.validator.js";
+import { shareAccessValidation, updateAccessValidation, accessIdValidation, resourceParamsValidation } from "../validators/access.validator.js";
 import { asyncHandler } from "../middlewares/async.middleware.js";
 
 const router = Router();
@@ -12,7 +12,7 @@ router.get("/", (_req, res) => {
     message: "Access routes",
     endpoints: {
       share: "/api/access/share",
-      getAccessList: "/api/access/:noteId",
+      getAccessList: "/api/access/:resourceType/:resourceId",
       update: "/api/access/:id",
       remove: "/api/access/:id"
     }
@@ -28,9 +28,9 @@ router.post(
 );
 
 router.get(
-  "/:noteId",
+  "/:resourceType/:resourceId",
   asyncHandler(authMiddleware),
-  noteIdAccessValidation(),
+  resourceParamsValidation(),
   validationMiddleware,
   accessController.getAccessList
 );

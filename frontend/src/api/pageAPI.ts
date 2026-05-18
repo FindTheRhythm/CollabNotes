@@ -22,8 +22,15 @@ api.interceptors.request.use(
 );
 
 export const pageAPI = {
-  getPages: async (sectionId: string): Promise<Page[]> => {
-    const response = await api.get(`/pages?sectionId=${sectionId}`);
+  getPages: async (sectionId?: string, notebookId?: string): Promise<Page[]> => {
+    const params = new URLSearchParams();
+    if (sectionId) {
+      params.append('sectionId', sectionId);
+    }
+    if (notebookId) {
+      params.append('notebookId', notebookId);
+    }
+    const response = await api.get(`/pages?${params.toString()}`);
     return response.data.data;
   },
 
@@ -33,15 +40,16 @@ export const pageAPI = {
   },
 
   createPage: async (
-    sectionId: string,
+    sectionIdOrNotebookId: string,
     data: {
       title: string;
       content: string;
       position: number;
-    }
+    },
+    isSectionId: boolean = true
   ): Promise<Page> => {
     const response = await api.post("/pages", {
-      sectionId,
+      [isSectionId ? 'sectionId' : 'notebookId']: sectionIdOrNotebookId,
       ...data,
     });
     return response.data.data;

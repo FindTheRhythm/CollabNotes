@@ -41,17 +41,17 @@ export class NoteRepository {
   async findAccessibleByUserId(userId: string, offset: number, limit: number): Promise<{ notes: (INote & { permission?: string })[]; total: number }> {
     const [notesResult, countResult] = await Promise.all([
       query(
-        `SELECT DISTINCT n.*, sa.permission AS permission FROM notes n
-         LEFT JOIN shared_access sa ON sa.note_id = n.id
-         WHERE n.owner_id = $1 OR sa.user_id = $1
+        `SELECT DISTINCT n.*, ra.permission AS permission FROM notes n
+         LEFT JOIN resource_access ra ON ra.resource_type = 'NOTE' AND ra.resource_id = n.id AND ra.user_id = $1
+         WHERE n.owner_id = $1 OR ra.user_id = $1
          ORDER BY n.created_at DESC
          OFFSET $2 LIMIT $3`,
         [userId, offset, limit]
       ),
       query(
         `SELECT COUNT(DISTINCT n.id) FROM notes n
-         LEFT JOIN shared_access sa ON sa.note_id = n.id
-         WHERE n.owner_id = $1 OR sa.user_id = $1`,
+         LEFT JOIN resource_access ra ON ra.resource_type = 'NOTE' AND ra.resource_id = n.id AND ra.user_id = $1
+         WHERE n.owner_id = $1 OR ra.user_id = $1`,
         [userId]
       )
     ]);
@@ -66,9 +66,9 @@ export class NoteRepository {
     const searchQuery = `%${queryText}%`;
     const [notesResult, countResult] = await Promise.all([
       query(
-        `SELECT DISTINCT n.*, sa.permission AS permission FROM notes n
-         LEFT JOIN shared_access sa ON sa.note_id = n.id
-         WHERE (n.owner_id = $1 OR sa.user_id = $1)
+        `SELECT DISTINCT n.*, ra.permission AS permission FROM notes n
+         LEFT JOIN resource_access ra ON ra.resource_type = 'NOTE' AND ra.resource_id = n.id AND ra.user_id = $1
+         WHERE (n.owner_id = $1 OR ra.user_id = $1)
            AND (n.title ILIKE $2 OR n.content ILIKE $2)
          ORDER BY n.created_at DESC
          OFFSET $3 LIMIT $4`,
@@ -76,8 +76,8 @@ export class NoteRepository {
       ),
       query(
         `SELECT COUNT(DISTINCT n.id) FROM notes n
-         LEFT JOIN shared_access sa ON sa.note_id = n.id
-         WHERE (n.owner_id = $1 OR sa.user_id = $1)
+         LEFT JOIN resource_access ra ON ra.resource_type = 'NOTE' AND ra.resource_id = n.id AND ra.user_id = $1
+         WHERE (n.owner_id = $1 OR ra.user_id = $1)
            AND (n.title ILIKE $2 OR n.content ILIKE $2)`,
         [userId, searchQuery]
       )

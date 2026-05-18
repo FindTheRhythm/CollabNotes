@@ -1,4 +1,4 @@
-import { UserRole, AccessPermission } from "./index.js";
+import { UserRole, AccessPermission, AccessResourceType } from "./index.js";
 
 export interface IUser {
   id: string;
@@ -19,9 +19,10 @@ export interface INote {
   updated_at: Date;
 }
 
-export interface ISharedAccess {
+export interface IResourceAccess {
   id: string;
-  note_id: string;
+  resource_type: AccessResourceType;
+  resource_id: string;
   user_id: string;
   permission: AccessPermission;
   created_at: Date;

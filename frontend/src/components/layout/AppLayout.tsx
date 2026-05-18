@@ -1,21 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store";
-import { TopToolbar } from "./TopToolbar";
 import { LeftSidebar, SidebarItem } from "./LeftSidebar";
 import { NotebookPanel } from "./NotebookPanel/NotebookPanel";
 import { SectionPagePanel } from "./SectionPagePanel";
+import { WorkspacesPanel } from "./WorkspacesPanel";
 import { PageEditor } from "../editor";
+import SharedPage from "@/pages/SharedPageReal";
 import {
   useWorkspaceManagement,
   useNotebookManagement,
-  useSectionManagement,
   usePageManagement,
 } from "@/hooks";
-import {
-  setSections,
-  setCurrentSection,
-} from "@/store/sectionSlice";
 import { setPages, setCurrentPage } from "@/store/pageSlice";
 import styles from "./AppLayout.module.css";
 
@@ -25,14 +21,19 @@ export const AppLayout: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>("notebooks");
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0 });
   const [isNotebookCreationOpen, setIsNotebookCreationOpen] = useState(false);
+  
+  // Panel widths
+  const [workspacesPanelWidth, setWorkspacesPanelWidth] = useState(224);
+  const [notebookPanelWidth, setNotebookPanelWidth] = useState(200);
+  const [sectionPagePanelWidth, setSectionPagePanelWidth] = useState(224);
+  const [isResizing, setIsResizing] = useState<string | null>(null);
+  const [resizeStartX, setResizeStartX] = useState(0);
 
   // Load data
-  const { currentWorkspace, loadWorkspaces } =
+  const { currentWorkspace, loadWorkspaces, workspaces, createWorkspace, renameWorkspace, removeWorkspace, selectWorkspace } =
     useWorkspaceManagement();
-  const { notebooks, currentNotebook, loadNotebooks, selectNotebook, createNotebook, renameNotebook, removeNotebook } =
+  const { notebooks, currentNotebook, loadNotebooks, selectNotebook, createNotebook, renameNotebook, removeNotebook, reorderNotebooks } =
     useNotebookManagement();
-  const { sections, currentSection, loadSections, selectSection, createSection } =
-    useSectionManagement();
   const {
     pages,
     currentPage,
@@ -41,17 +42,67 @@ export const AppLayout: React.FC = () => {
     savePage,
     createNewPage,
     toggleFavorite,
+    movePage,
+    deletePage,
   } = usePageManagement();
 
   useEffect(() => {
     loadWorkspaces();
   }, [loadWorkspaces]);
 
+  // Load panel widths from localStorage
+  useEffect(() => {
+    const savedWorkspacesWidth = localStorage.getItem('workspacesPanelWidth');
+    const savedNotebookWidth = localStorage.getItem('notebookPanelWidth');
+    const savedSectionPageWidth = localStorage.getItem('sectionPagePanelWidth');
+    
+    if (savedWorkspacesWidth) setWorkspacesPanelWidth(parseInt(savedWorkspacesWidth));
+    if (savedNotebookWidth) setNotebookPanelWidth(parseInt(savedNotebookWidth));
+    if (savedSectionPageWidth) setSectionPagePanelWidth(parseInt(savedSectionPageWidth));
+  }, []);
+
+  // Mouse move handler for resizing
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const delta = e.clientX - resizeStartX;
+      const minWidth = 150; // minimum panel width
+      const maxWidth = 400; // maximum panel width
+
+      if (isResizing === 'workspaces') {
+        const newWidth = Math.max(minWidth, Math.min(maxWidth, workspacesPanelWidth + delta));
+        setWorkspacesPanelWidth(newWidth);
+        localStorage.setItem('workspacesPanelWidth', newWidth.toString());
+      } else if (isResizing === 'notebook') {
+        const newWidth = Math.max(minWidth, Math.min(maxWidth, notebookPanelWidth + delta));
+        setNotebookPanelWidth(newWidth);
+        localStorage.setItem('notebookPanelWidth', newWidth.toString());
+      } else if (isResizing === 'sectionPage') {
+        const newWidth = Math.max(minWidth, Math.min(maxWidth, sectionPagePanelWidth + delta));
+        setSectionPagePanelWidth(newWidth);
+        localStorage.setItem('sectionPagePanelWidth', newWidth.toString());
+      }
+
+      setResizeStartX(e.clientX);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(null);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, resizeStartX, workspacesPanelWidth, notebookPanelWidth, sectionPagePanelWidth]);
+
   useEffect(() => {
     if (currentWorkspace) {
       loadNotebooks();
-      dispatch(setSections([]));
-      dispatch(setCurrentSection(null));
       dispatch(setPages([]));
       dispatch(setCurrentPage(null));
     }
@@ -59,33 +110,13 @@ export const AppLayout: React.FC = () => {
 
   useEffect(() => {
     if (currentNotebook) {
-      console.log('[AppLayout] currentNotebook changed, loading sections:', { notebookId: currentNotebook.id });
-      loadSections();
-    }
-  }, [currentNotebook, loadSections]);
-
-  useEffect(() => {
-    console.log('[AppLayout] sections changed:', { sectionsCount: sections.length, currentSectionId: currentSection?.id });
-    if (sections.length > 0 && !currentSection) {
-      console.log('[AppLayout] Selecting first section:', { sectionId: sections[0].id });
-      selectSection(sections[0].id);
-    }
-  }, [sections, currentSection, selectSection]);
-
-  useEffect(() => {
-    console.log('[AppLayout] currentSection changed:', { sectionId: currentSection?.id });
-    if (currentSection) {
+      console.log('[AppLayout] currentNotebook changed, loading pages:', { notebookId: currentNotebook.id });
       loadPages();
-      dispatch(setCurrentPage(null));
     }
-  }, [currentSection, loadPages, dispatch]);
+  }, [currentNotebook, loadPages]);
 
   const handleSelectNotebook = (notebook: any) => {
     selectNotebook(notebook.id);
-  };
-
-  const handleSelectSection = (section: any) => {
-    selectSection(section.id);
   };
 
   const handleSelectPage = (page: any) => {
@@ -112,16 +143,6 @@ export const AppLayout: React.FC = () => {
     }
   };
 
-  const handleCreateSection = async (name: string) => {
-    console.log('[AppLayout] handleCreateSection called:', { name });
-    try {
-      await createSection(name);
-      console.log('[AppLayout] handleCreateSection completed successfully');
-    } catch (error) {
-      console.error('[AppLayout] handleCreateSection failed:', error);
-    }
-  };
-
   const handleSidebarContextMenu = (
     itemId: string,
     event: React.MouseEvent<HTMLButtonElement>
@@ -135,6 +156,19 @@ export const AppLayout: React.FC = () => {
       x: event.clientX,
       y: event.clientY,
     });
+  };
+
+  const handleSidebarDrop = (targetId: string, data: { type: string; id: string }) => {
+    // if dropped on trash, delete corresponding item
+    if (targetId === 'trash') {
+      if (data.type === 'workspace') {
+        removeWorkspace(data.id);
+      } else if (data.type === 'notebook') {
+        removeNotebook(data.id);
+      } else if (data.type === 'page') {
+        deletePage(data.id);
+      }
+    }
   };
 
   const handleCloseContextMenu = () => {
@@ -151,14 +185,14 @@ export const AppLayout: React.FC = () => {
   // Sidebar items
   const sidebarItems: SidebarItem[] = [
     {
-      id: "home",
+      id: "workspaces",
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M3 13h2v8H3zm4-8h2v16H7zm4-2h2v18h-2zm4-1h2v19h-2zm4 4h2v15h-2z" />
         </svg>
       ),
-      label: "Главная",
-      active: activeSection === "home",
+      label: "Рабочие области",
+      active: activeSection === "workspaces",
     },
     {
       id: "notebooks",
@@ -210,69 +244,132 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className={styles.layout}>
-      <TopToolbar workspace={currentWorkspace || undefined} />
-
       <div className={styles.mainContent}>
-        <LeftSidebar
-          items={sidebarItems}
-          collapsed={sidebarCollapsed}
-          onCollapsedChange={setSidebarCollapsed}
-          onItemClick={(itemId) => {
-            setActiveSection(itemId);
-            handleCloseContextMenu();
+        <div 
+          className={`${styles.sidePanels} ${sidebarCollapsed ? styles.collapsed : ""}`}
+          style={{
+            width: sidebarCollapsed ? 72 : activeSection === "workspaces"
+              ? 72 + workspacesPanelWidth + 1
+              : 72 + notebookPanelWidth + sectionPagePanelWidth + 2,
           }}
-          onItemContextMenu={handleSidebarContextMenu}
-        />
+        >
+          <LeftSidebar
+            items={sidebarItems}
+            collapsed={sidebarCollapsed}
+            onCollapsedChange={setSidebarCollapsed}
+            onItemClick={(itemId) => {
+              setActiveSection(itemId);
+              handleCloseContextMenu();
+            }}
+            onItemContextMenu={handleSidebarContextMenu}
+            onItemDrop={handleSidebarDrop}
+          />
 
-        {activeSection === "notebooks" && (
-          <>
-            <NotebookPanel
-              notebooks={notebooks}
-              currentNotebook={currentNotebook || undefined}
-              onSelectNotebook={handleSelectNotebook}
-              onCreateNotebook={createNotebook}
-              isCreating={isNotebookCreationOpen}
-              onToggleCreating={setIsNotebookCreationOpen}
-              onRenameNotebook={renameNotebook}
-              onDeleteNotebook={removeNotebook}
+          {activeSection === "workspaces" && (
+            <WorkspacesPanel
+              workspaces={workspaces || []}
+              currentWorkspace={currentWorkspace || undefined}
+              onSelectWorkspace={(workspace) => {
+                selectWorkspace(workspace.id);
+                setActiveSection("notebooks");
+                handleCloseContextMenu();
+              }}
+              onCreateWorkspace={async (name) => {
+                await createWorkspace?.(name);
+              }}
+              onRenameWorkspace={async (id, name) => {
+                await renameWorkspace?.(id, name);
+              }}
+              onDeleteWorkspace={async (id) => {
+                await removeWorkspace?.(id);
+              }}
+              className={sidebarCollapsed ? "collapsed" : ""}
+              width={workspacesPanelWidth}
+              onResizeStart={(e) => {
+                setIsResizing('workspaces');
+                setResizeStartX(e.clientX);
+              }}
             />
+          )}
 
-            {currentNotebook ? (
-              <>
+          {activeSection === "notebooks" && (
+            <>
+              <NotebookPanel
+                notebooks={notebooks}
+                currentNotebook={currentNotebook || undefined}
+                workspaceName={currentWorkspace?.name}
+                onSelectNotebook={handleSelectNotebook}
+                onCreateNotebook={createNotebook}
+                isCreating={isNotebookCreationOpen}
+                onToggleCreating={setIsNotebookCreationOpen}
+                onRenameNotebook={renameNotebook}
+                onDeleteNotebook={removeNotebook}
+                onReorder={(ids) => {
+                  reorderNotebooks?.(ids);
+                }}
+                className={sidebarCollapsed ? "collapsed" : ""}
+                width={notebookPanelWidth}
+                onResizeStart={(e) => {
+                  setIsResizing('notebook');
+                  setResizeStartX(e.clientX);
+                }}
+              />
+
+              {currentNotebook && (
                 <SectionPagePanel
-                  sections={sections}
                   pages={pages}
-                  currentSection={currentSection || undefined}
                   currentPage={currentPage || undefined}
-                  onSelectSection={handleSelectSection}
                   onSelectPage={handleSelectPage}
                   onCreatePage={handleCreatePage}
-                  onCreateSection={handleCreateSection}
                   onToggleFavorite={toggleFavorite}
+                  onReorderPages={(pageId, targetIndex) => movePage?.(pageId, targetIndex)}
+                  className={sidebarCollapsed ? "collapsed" : ""}
+                  width={sectionPagePanelWidth}
+                  onResizeStart={(e) => {
+                    setIsResizing('sectionPage');
+                    setResizeStartX(e.clientX);
+                  }}
                 />
+              )}
+            </>
+          )}
+        </div>
 
-                {currentPage ? (
-                  <div className={styles.editorArea}>
-                    <PageEditor page={currentPage} onSave={handleSavePage} />
-                  </div>
-                ) : (
-                  <div className={styles.editorArea}>
-                    <div className={styles.emptyState}>
-                      <h2>Выберите страницу</h2>
-                      <p>Нажмите на страницу в списке, чтобы начать редактирование.</p>
-                    </div>
-                  </div>
-                )}
-              </>
+        {activeSection === "notebooks" ? (
+          currentNotebook ? (
+            currentPage ? (
+              <div className={styles.editorArea}>
+                <PageEditor 
+                  page={currentPage} 
+                  onSave={handleSavePage} 
+                  sidebarWidth={sidebarCollapsed ? 72 : 72 + notebookPanelWidth + sectionPagePanelWidth + 2} 
+                />
+              </div>
             ) : (
               <div className={styles.editorArea}>
                 <div className={styles.emptyState}>
-                  <h2>Откройте блокнот</h2>
-                  <p>Выберите блокнот слева или создайте новый, чтобы начать работу.</p>
+                  <h2>Выберите страницу</h2>
+                  <p>Нажмите на страницу в списке, чтобы начать редактирование.</p>
                 </div>
               </div>
-            )}
-          </>
+            )
+          ) : (
+            <div className={`${styles.editorArea} ${sidebarCollapsed ? styles.editorAreaCollapsed : ''}`}>
+              <div className={styles.emptyState}>
+                <h2>Откройте блокнот</h2>
+                <p>Выберите блокнот слева или создайте новый, чтобы начать работу.</p>
+              </div>
+            </div>
+          )
+        ) : activeSection === "shared" ? (
+          <SharedPage />
+        ) : (
+          <div className={styles.editorArea}>
+            <div className={styles.emptyState}>
+              <h2>Выберите раздел</h2>
+              <p>Переключитесь на блокнот или другую секцию для редактирования.</p>
+            </div>
+          </div>
         )}
       </div>
       {contextMenu.visible && (

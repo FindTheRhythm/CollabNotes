@@ -3,7 +3,7 @@ import { accessRepository } from "../repositories/access.repository.js";
 import { NotFoundError, ForbiddenError } from "../utils/errors.js";
 import { NoteResponseDTO, NoteWithAccessDTO } from "../dto/note.dto.js";
 import { INote } from "../types/models.js";
-import { UserRole, AccessPermission } from "../types/index.js";
+import { UserRole, AccessPermission, AccessResourceType } from "../types/index.js";
 
 export class NoteService {
   async getNoteById(id: string, userId: string, userRole: UserRole): Promise<NoteWithAccessDTO> {
@@ -17,11 +17,11 @@ export class NoteService {
       return {
         ...this.mapNoteToDTO(note),
         isOwner,
-        permission: isOwner ? AccessPermission.EDIT : undefined
+        permission: isOwner ? AccessPermission.WRITE : undefined
       };
     }
 
-    const access = await accessRepository.findByNoteAndUser(id, userId);
+    const access = await accessRepository.findByResourceAndUser(AccessResourceType.NOTE, id, userId);
     if (!access) {
       throw new ForbiddenError("You don't have permission to view this note");
     }
@@ -41,7 +41,7 @@ export class NoteService {
       notes: notes.map(note => ({
         ...this.mapNoteToDTO(note),
         isOwner: true,
-        permission: AccessPermission.EDIT
+        permission: AccessPermission.WRITE
       })),
       total
     };
@@ -56,7 +56,7 @@ export class NoteService {
         notes: notes.map(note => ({
           ...this.mapNoteToDTO(note),
           isOwner: note.owner_id === userId,
-          permission: note.owner_id === userId ? AccessPermission.EDIT : undefined
+          permission: note.owner_id === userId ? AccessPermission.WRITE : undefined
         })),
         total
       };
@@ -67,7 +67,7 @@ export class NoteService {
       notes: notes.map(note => ({
         ...this.mapNoteToDTO(note),
         isOwner: note.owner_id === userId,
-        permission: note.owner_id === userId ? AccessPermission.EDIT : note.permission
+        permission: note.owner_id === userId ? AccessPermission.WRITE : note.permission
       })),
       total
     };
@@ -86,8 +86,8 @@ export class NoteService {
 
     const isOwner = note.owner_id === userId;
     if (!isOwner && userRole !== UserRole.ADMIN) {
-      const access = await accessRepository.findByNoteAndUser(id, userId);
-      if (!access || access.permission !== AccessPermission.EDIT) {
+      const access = await accessRepository.findByResourceAndUser(AccessResourceType.NOTE, id, userId);
+      if (!access || access.permission !== AccessPermission.WRITE) {
         throw new ForbiddenError("You don't have permission to edit this note");
       }
     }
@@ -122,7 +122,7 @@ export class NoteService {
         notes: notes.map(note => ({
           ...this.mapNoteToDTO(note),
           isOwner: note.owner_id === userId,
-          permission: note.owner_id === userId ? AccessPermission.EDIT : undefined
+          permission: note.owner_id === userId ? AccessPermission.WRITE : undefined
         })),
         total
       };
@@ -133,7 +133,7 @@ export class NoteService {
       notes: notes.map(note => ({
         ...this.mapNoteToDTO(note),
         isOwner: note.owner_id === userId,
-        permission: note.owner_id === userId ? AccessPermission.EDIT : note.permission
+        permission: note.owner_id === userId ? AccessPermission.WRITE : note.permission
       })),
       total
     };

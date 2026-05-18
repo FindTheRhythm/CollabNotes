@@ -40,13 +40,16 @@ async function runMigrations(): Promise<void> {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );`,
 
-        // Shared Access table
-        `CREATE TABLE IF NOT EXISTS shared_access (
+        // Resource Access table
+        `CREATE TYPE IF NOT EXISTS access_resource_type AS ENUM ('NOTE', 'WORKSPACE', 'NOTEBOOK');
+        CREATE TABLE IF NOT EXISTS resource_access (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          note_id UUID NOT NULL REFERENCES note(id) ON DELETE CASCADE,
+          resource_type access_resource_type NOT NULL,
+          resource_id UUID NOT NULL,
           user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-          permission VARCHAR(50) DEFAULT 'view',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          permission VARCHAR(50) DEFAULT 'READ',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );`,
 
         // Comments table

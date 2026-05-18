@@ -13,14 +13,34 @@
   overflow: visible;
 }
 
+.sidePanels {
+  position: fixed;
+  top: 96px;
+  left: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  z-index: 10; /* keep behind main editor content */
+  width: 496px; /* LeftSidebar (72) + NotebookPanel (200) + SectionPagePanel (224) */
+  height: auto;
+  padding-left: 0;
+  transition: width 0.3s ease;
+}
+
+.sidePanels.collapsed {
+  width: 72px; /* only LeftSidebar */
+}
+
 .editorArea {
   flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   overflow: visible;
   background-color: var(--color-background);
+  padding-right: 80px; /* reserve space for side toolbar */
 }
-
 .emptyState {
   flex: 1;
   display: flex;

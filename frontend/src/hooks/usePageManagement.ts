@@ -14,19 +14,21 @@ import { pageAPI } from "@/api/pageAPI";
 export const usePageManagement = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { currentPage, pages } = useSelector((state: RootState) => state.page);
-  const { currentSection } = useSelector(
-    (state: RootState) => state.section
+  const { currentNotebook } = useSelector(
+    (state: RootState) => state.notebook
   );
 
   const loadPages = useCallback(async () => {
-    if (!currentSection) return;
+    if (!currentNotebook) return;
     try {
-      const data = await pageAPI.getPages(currentSection.id);
+      console.log('[usePageManagement] loadPages called for notebook:', { notebookId: currentNotebook.id });
+      const data = await pageAPI.getPages(undefined, currentNotebook.id);
+      console.log('[usePageManagement] Pages loaded:', { count: data.length, pages: data });
       dispatch(setPages(data));
     } catch (error) {
       console.error("Failed to load pages:", error);
     }
-  }, [currentSection, dispatch]);
+  }, [currentNotebook, dispatch]);
 
   const loadPage = useCallback(
     async (pageId: string) => {
@@ -56,18 +58,18 @@ export const usePageManagement = () => {
 
   const createNewPage = useCallback(
     async (title: string) => {
-      console.log('[usePageManagement] createNewPage called:', { title, currentSection });
-      if (!currentSection) {
-        console.error('[usePageManagement] createNewPage: currentSection is missing!');
+      console.log('[usePageManagement] createNewPage called:', { title, currentNotebook });
+      if (!currentNotebook) {
+        console.error('[usePageManagement] createNewPage: currentNotebook is missing!');
         return;
       }
       try {
-        console.log('[usePageManagement] Creating page with:', { sectionId: currentSection.id, title, position: pages.length });
-        const newPage = await pageAPI.createPage(currentSection.id, {
+        console.log('[usePageManagement] Creating page with:', { notebookId: currentNotebook.id, title, position: pages.length });
+        const newPage = await pageAPI.createPage(currentNotebook.id, {
           title,
           content: "",
           position: pages.length,
-        });
+        }, false); // false = notebookId, not sectionId
         console.log('[usePageManagement] Page created successfully:', newPage);
         dispatch(addPage(newPage));
         dispatch(setCurrentPage(newPage));
@@ -77,7 +79,7 @@ export const usePageManagement = () => {
         throw error;
       }
     },
-    [currentSection, pages.length, dispatch]
+    [currentNotebook, pages.length, dispatch]
   );
 
   const deletePage = useCallback(
@@ -109,6 +111,25 @@ export const usePageManagement = () => {
     [dispatch]
   );
 
+  const movePage = useCallback(
+    async (pageId: string, targetIndex: number) => {
+      if (!currentNotebook) return;
+      try {
+        const page = pages.find(p => p.id === pageId);
+        if (page) {
+          // Get section from page
+          const sectionId = page.sectionId;
+          await pageAPI.movePage(pageId, sectionId, targetIndex);
+          // reload pages to refresh ordering
+          await loadPages();
+        }
+      } catch (error) {
+        console.error('Failed to move page', error);
+      }
+    },
+    [currentNotebook, pages, loadPages]
+  );
+
   const toggleFavoritePage = useCallback((pageId: string) => {
     dispatch(toggleFavorite(pageId));
   }, [dispatch]);
@@ -123,5 +144,6 @@ export const usePageManagement = () => {
     deletePage,
     duplicatePage,
     toggleFavorite: toggleFavoritePage,
+    movePage,
   };
 };

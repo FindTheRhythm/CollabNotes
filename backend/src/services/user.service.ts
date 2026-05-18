@@ -37,6 +37,11 @@ export class UserService {
     return this.mapUserToDTO(updatedUser);
   }
 
+  async searchUsers(queryText: string, limit: number): Promise<{ users: UserResponseDTO[] }> {
+    const users = await userRepository.searchByEmailOrUsername(queryText, limit);
+    return { users: users.map(user => this.mapUserToDTO(user)) };
+  }
+
   async deleteUser(id: string): Promise<void> {
     const user = await userRepository.findById(id);
     if (!user) {

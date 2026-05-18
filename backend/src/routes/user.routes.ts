@@ -11,6 +11,12 @@ import { UserRole } from "../types/index.js";
 const router = Router();
 
 router.get(
+  "/search",
+  asyncHandler(authMiddleware),
+  userController.search
+);
+
+router.get(
   "/",
   asyncHandler(authMiddleware),
   roleMiddleware(UserRole.ADMIN),

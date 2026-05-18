@@ -15,6 +15,7 @@ interface LeftSidebarProps {
   onItemContextMenu?: (itemId: string, e: React.MouseEvent<HTMLButtonElement>) => void;
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
+  onItemDrop?: (targetId: string, data: { type: string; id: string }) => void;
 }
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -23,6 +24,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   onItemContextMenu,
   collapsed = false,
   onCollapsedChange,
+  onItemDrop,
 }) => {
   const handleToggleCollapse = () => {
     onCollapsedChange?.(!collapsed);
@@ -40,6 +42,18 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               onItemContextMenu?.(item.id, e);
             }}
             title={item.label}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const raw = e.dataTransfer.getData("application/collabnotes");
+              if (!raw) return;
+              try {
+                const data = JSON.parse(raw);
+                onItemDrop?.(item.id, data);
+              } catch (err) {
+                console.error('LeftSidebar drop parse error', err);
+              }
+            }}
           >
             <span className={styles.icon}>{item.icon}</span>
             {!collapsed && item.badge !== undefined && (
@@ -50,7 +64,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       <button
-        className={styles.collapseButton}
+        className={styles.sidebarItem}
         onClick={handleToggleCollapse}
         title={collapsed ? "Развернуть" : "Свернуть"}
       >

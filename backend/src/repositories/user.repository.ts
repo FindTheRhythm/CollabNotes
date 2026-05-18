@@ -40,6 +40,23 @@ export class UserRepository {
     };
   }
 
+  async searchByEmailOrUsername(queryText: string, limit: number): Promise<IUser[]> {
+    if (!queryText.trim()) {
+      const result = await query(
+        `SELECT * FROM users ORDER BY created_at DESC LIMIT $1`,
+        [limit]
+      );
+      return result.rows;
+    }
+
+    const search = `%${queryText.trim().toLowerCase()}%`;
+    const result = await query(
+      `SELECT * FROM users WHERE lower(email) LIKE $1 OR lower(username) LIKE $1 ORDER BY created_at DESC LIMIT $2`,
+      [search, limit]
+    );
+    return result.rows;
+  }
+
   async create(email: string, username: string, passwordHash: string): Promise<IUser> {
     const id = generateId();
     const result = await query(
