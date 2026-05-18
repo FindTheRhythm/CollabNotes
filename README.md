@@ -1,69 +1,74 @@
-# CollabNotes - Interactive Notes with Collaborative Access
+# CollabNotes
 
-A production-ready fullstack web application for creating interactive notes with collaborative access control. Built with React, Node.js, Express, PostgreSQL, and Docker.
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Status: Production Ready](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-blue.svg)
 
-## 🎯 Features
+> A modern, full-featured collaborative note-taking platform built with React, TypeScript, Express, and PostgreSQL. Create, share, and collaborate on interactive notes with real-time synchronization and comprehensive access control.
 
-- **User Authentication**: JWT-based authentication with refresh tokens
-- **Note Management**: Create, read, update, and delete notes
-- **Collaborative Access**: Share notes with other users with granular permissions
-- **Comments System**: Leave comments and edits on shared notes
-- **Role-Based Access Control**: USER, EDITOR, ADMIN roles
-- **Search Functionality**: Full-text search across notes
-- **Real-time Caching**: Redis integration for performance
-- **Responsive Design**: Mobile-friendly UI
-- **Production Deployment**: Docker-based containerization with Nginx reverse proxy
+## ✨ Key Features
 
-## 🏗️ Architecture
+- **Authentication & Security** — JWT-based authentication with access and refresh tokens
+- **Role-Based Access Control** — Granular permissions for USER, EDITOR, and ADMIN roles
+- **Rich Note Management** — CRUD operations with flexible sharing and collaboration settings
+- **Real-Time Collaboration** — WebSocket support for live note editing and commenting
+- **Advanced Search** — Full-text search capabilities across all notes
+- **Performance Optimization** — Redis caching layer for improved response times
+- **Production-Ready** — Fully containerized with Docker Compose and Nginx reverse proxy
 
-### Technology Stack
+## 🏗️ Architecture Overview
 
-**Frontend:**
-- React 18+
-- TypeScript
-- Vite
-- React Router
-- Redux Toolkit
-- Axios
+### Frontend Stack
+- **React 18** — Modern UI framework with hooks and concurrent features
+- **TypeScript** — Type-safe development experience
+- **Vite** — Lightning-fast build tool and development server
+- **React Router** — Client-side routing
+- **Redux Toolkit** — Predictable state management
+- **Axios** — HTTP client for API communication
 
-**Backend:**
-- Node.js + Express
-- TypeScript
-- PostgreSQL
-- Redis
-- JWT Authentication
+### Backend Stack
+- **Node.js + Express** — Lightweight and scalable server framework
+- **TypeScript** — Full type safety for backend code
+- **PostgreSQL** — Robust relational database
+- **Redis** — In-memory cache for performance optimization
+- **JWT** — Secure token-based authentication
 
-**Infrastructure:**
-- Docker & Docker Compose
-- Nginx (Reverse Proxy)
-- PostgreSQL (Database)
-- Redis (Cache)
-- PgAdmin (Database Management)
+### Infrastructure
+- **Docker & Docker Compose** — Containerization and orchestration
+- **Nginx** — Reverse proxy and load balancing
+- **PostgreSQL** — Database service
+- **Redis** — Cache service
+- **PgAdmin** — Database administration UI
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Docker & Docker Compose (Latest versions)
-- Git
-- (Optional) Node.js 20+ and npm for local development
+- **Docker** and **Docker Compose** (v20.10+)
+- **Git**
+- *(Optional)* Node.js 20+ and npm for local development
 
-### 1. Clone the Repository
+### Installation Steps
+
+#### 1. Clone the Repository
 
 ```bash
 git clone <repository-url>
 cd CollabNotes
 ```
 
-### 2. Configure Environment Variables
+#### 2. Configure Environment Variables
 
-**Backend (.env)**
+Create and configure the necessary environment files:
+
 ```bash
 cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 ```
 
-Edit `backend/.env`:
-```
+Update `backend/.env` with appropriate values:
+
+```env
 NODE_ENV=production
 PORT=3000
 DB_HOST=postgres
@@ -71,92 +76,61 @@ DB_PORT=5432
 DB_NAME=collabnotes
 DB_USER=postgres
 DB_PASSWORD=postgres_password
-JWT_ACCESS_SECRET=your_secure_access_secret_key_32_chars_minimum
-JWT_REFRESH_SECRET=your_secure_refresh_secret_key_32_chars_minimum
+DB_SSL=false
+JWT_ACCESS_SECRET=your_access_secret_key_min_32_characters_prod
+JWT_REFRESH_SECRET=your_refresh_secret_key_min_32_characters_prod
 REDIS_HOST=redis
 REDIS_PORT=6379
 CORS_ORIGIN=http://localhost
 ```
 
-**Frontend (.env)**
-```bash
-cp frontend/.env.example frontend/.env
-```
-
-### 3. Build and Run with Docker Compose
+#### 3. Build and Start Services
 
 ```bash
-# Build all images
 docker-compose build
-
-# Start all services
 docker-compose up -d
-
-# View logs
 docker-compose logs -f
-
-# Stop services
-docker-compose down
 ```
 
-### 4. Initialize Database
+#### 4. Initialize Database
 
-The database will automatically initialize on first run. To manually initialize:
+The database automatically initializes on first run. To manually initialize:
 
 ```bash
 docker-compose exec postgres psql -U postgres -d collabnotes -f /docker-entrypoint-initdb.d/init-db.sh
 ```
 
-### 5. Access the Application
+#### 5. Access the Application
 
-- **Frontend**: http://localhost
-- **Backend API**: http://localhost/api
-- **PgAdmin**: http://localhost:5050
-  - Email: admin@collabnotes.local
-  - Password: admin_password
-
-## 📖 API Documentation
-
-See the comprehensive API documentation in the README above for all endpoints including:
-- Authentication endpoints
-- Notes management
-- Comments management
-- Access control
-- User management
-
-## 🔐 Authentication & Authorization
-
-### JWT Tokens
-- **Access Token**: 15-minute lifetime (configurable)
-- **Refresh Token**: 7-day lifetime (configurable)
-- Tokens are stored in localStorage on the frontend
-
-### Role-Based Access Control
-- **USER**: Can create and manage personal notes
-- **EDITOR**: Can edit shared notes with edit permission
-- **ADMIN**: Can manage users and view system analytics
-
-## 📊 Database Schema
-
-- **Users**: Authentication and user management
-- **Notes**: Note storage with ownership
-- **Shared Access**: Granular access control
-- **Comments**: Note discussions
-- **Refresh Tokens**: Token management
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| Frontend | http://localhost | — |
+| Backend API | http://localhost:3000/api | — |
+| WebSocket | http://localhost:4000 | — |
+| PgAdmin | http://localhost:5050 | admin@example.com / admin_password |
 
 ## 🧪 Testing
 
-```bash
-# Backend tests
-cd backend && npm test
+### Run Backend Tests
 
-# Frontend tests
-cd frontend && npm test
+```bash
+cd backend
+npm install
+npm test
 ```
 
-## 🛠️ Development
+### Run Frontend Tests
 
-### Local Backend Development
+```bash
+cd frontend
+npm install
+npm test
+```
+
+## 💻 Local Development
+
+### Backend Setup
+
 ```bash
 cd backend
 npm install
@@ -164,7 +138,10 @@ cp .env.example .env.local
 npm run dev
 ```
 
-### Local Frontend Development
+The backend development server will start with hot-reload enabled.
+
+### Frontend Setup
+
 ```bash
 cd frontend
 npm install
@@ -172,37 +149,110 @@ cp .env.example .env.local
 npm run dev
 ```
 
-## 🐛 Troubleshooting
+The frontend development server will start with HMR (Hot Module Replacement).
 
-### Database Connection Issues
-```bash
-docker-compose logs postgres
-docker-compose down -v && docker-compose up postgres
+## 📁 Project Structure
+
+```
+CollabNotes/
+├── backend/                    # Express API server
+│   ├── src/
+│   │   ├── controllers/       # Request handlers
+│   │   ├── services/          # Business logic
+│   │   ├── models/            # Data models
+│   │   ├── routes/            # API routes
+│   │   ├── middlewares/       # Express middleware
+│   │   ├── validators/        # Input validation
+│   │   ├── config/            # Configuration files
+│   │   └── database/          # Database configuration
+│   ├── tests/                 # Unit and integration tests
+│   ├── database/              # Database migrations
+│   └── package.json
+├── frontend/                  # React application
+│   ├── src/
+│   │   ├── components/        # Reusable React components
+│   │   ├── pages/             # Page components
+│   │   ├── store/             # Redux store configuration
+│   │   ├── hooks/             # Custom React hooks
+│   │   ├── types/             # TypeScript type definitions
+│   │   ├── api/               # API client services
+│   │   └── utils/             # Utility functions
+│   └── package.json
+├── websocket/                 # Real-time WebSocket server
+├── database/                  # Database migrations and seeds
+│   ├── migrations/            # SQL migration files
+│   └── seeds/                 # Initial seed data
+├── docker-compose.yml         # Service orchestration
+└── README.md
 ```
 
-### Port Conflicts
-Edit `docker-compose.yml` to change port mappings
+## 🔧 Troubleshooting
 
-## 📚 Documentation
+### Database Connection Issues
 
-- Full API documentation with examples
-- Database schema and relationships
-- Architecture patterns and design decisions
-- Deployment and monitoring guides
+```bash
+docker-compose logs postgres
+docker-compose down -v
+docker-compose up postgres
+```
+
+### Port Already in Use
+
+Update port mappings in `docker-compose.yml`:
+
+```yaml
+services:
+  frontend:
+    ports:
+      - "8080:80"  # Change 8080 to your preferred port
+```
+
+### Cache Issues
+
+Clear Redis cache:
+
+```bash
+docker-compose exec redis redis-cli FLUSHALL
+```
+
+### View Service Logs
+
+```bash
+docker-compose logs -f <service-name>
+# Examples: postgres, redis, backend, frontend
+```
+
+## 📊 Database Migrations
+
+All migrations are stored in `database/migrations/`. To add a new migration:
+
+1. Create a new SQL file with the naming convention: `###_description.sql`
+2. Place it in the `database/migrations/` directory
+3. Restart the services: `docker-compose up postgres`
 
 ## 🤝 Contributing
 
-1. Create a feature branch
-2. Commit changes
-3. Push to branch
-4. Open a Pull Request
+We welcome contributions! Please follow these steps:
 
-## 📄 License
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/your-feature-name`
+3. **Commit** changes: `git commit -m "Add feature description"`
+4. **Push** to the branch: `git push origin feature/your-feature-name`
+5. **Open** a Pull Request with a clear description
 
-MIT License - see LICENSE file for details
+### Code Guidelines
+
+- Follow TypeScript best practices
+- Maintain consistent code style
+- Add tests for new features
+- Update documentation as needed
+
+## 📝 License
+
+This project is licensed under the **MIT License** — see the LICENSE file for details.
 
 ---
 
-**Version**: 1.0.0  
-**Status**: Production Ready  
-**Created**: 2026
+**Version:** 1.0.0  
+**Status:** Production Ready  
+**Last Updated:** May 2026  
