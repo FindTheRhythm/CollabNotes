@@ -69,6 +69,22 @@ export const authAPI = {
     }
   },
 
+  updateUser: async (id: string, updates: { username?: string; email?: string }): Promise<IUser> => {
+    try {
+      log.info("PUT /users/" + id, updates);
+      const response = await api.put(`/users/${id}`, updates);
+      log.info("PUT /users/" + id + " success", { userId: response.data.data.id });
+      return response.data.data;
+    } catch (error: any) {
+      log.error("PUT /users/" + id + " failed", {
+        status: error.response?.status,
+        message: error.response?.data?.message,
+        errorData: error.response?.data
+      });
+      throw error;
+    }
+  },
+
   getCurrentUser: async (): Promise<IUser> => {
     try {
       log.info("GET /auth/me");

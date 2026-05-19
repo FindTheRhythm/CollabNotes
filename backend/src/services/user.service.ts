@@ -1,5 +1,5 @@
 import { userRepository } from "../repositories/user.repository.js";
-import { NotFoundError } from "../utils/errors.js";
+import { NotFoundError, ConflictError } from "../utils/errors.js";
 import { UserResponseDTO, UpdateUserDTO } from "../dto/auth.dto.js";
 import { IUser } from "../types/models.js";
 
@@ -27,6 +27,20 @@ export class UserService {
     const user = await userRepository.findById(id);
     if (!user) {
       throw new NotFoundError("User not found");
+    }
+
+    if (updates.email) {
+      const existingEmailUser = await userRepository.findByEmail(updates.email);
+      if (existingEmailUser && existingEmailUser.id !== id) {
+        throw new ConflictError("Email address is already in use");
+      }
+    }
+
+    if (updates.username) {
+      const existingUsernameUser = await userRepository.findByUsername(updates.username);
+      if (existingUsernameUser && existingUsernameUser.id !== id) {
+        throw new ConflictError("Username is already in use");
+      }
     }
 
     const updatedUser = await userRepository.update(id, updates);

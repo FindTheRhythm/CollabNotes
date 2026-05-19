@@ -95,6 +95,32 @@ export function useAuth() {
     }
   };
 
+  const updateProfile = async (updates: { username?: string; email?: string }): Promise<void> => {
+    if (!auth.user) {
+      throw new Error("No authenticated user to update");
+    }
+
+    log.info("Update profile hook called", updates);
+    dispatch(setLoading(true));
+    try {
+      log.debug("Calling authAPI.updateUser...");
+      const updatedUser = await authAPI.updateUser(auth.user.id, updates);
+      log.info("Update profile success", { userId: updatedUser.id });
+      dispatch(setUser(updatedUser));
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || "Failed to update profile";
+      log.error("Update profile failed", {
+        message,
+        status: error.response?.status,
+        errorData: error.response?.data
+      });
+      dispatch(setError(message));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
   const getCurrentUser = async (): Promise<void> => {
     log.info("Get current user hook called");
     dispatch(setLoading(true));
@@ -123,6 +149,7 @@ export function useAuth() {
     register,
     login,
     logout: handleLogout,
+    updateProfile,
     getCurrentUser
   };
 }
